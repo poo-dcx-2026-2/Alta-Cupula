@@ -109,3 +109,4 @@ O uso é permitido como apoio, desde que declarado em [`DECLARACAO-DE-USO-DE-IA.
 
 | Ryan Lucas | 20250114141 | Ryan-Lucas001 |
 
+## Regras Autorias
