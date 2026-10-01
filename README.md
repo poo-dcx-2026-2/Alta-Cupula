@@ -110,3 +110,12 @@ O uso é permitido como apoio, desde que declarado em [`DECLARACAO-DE-USO-DE-IA.
 | Ryan Lucas | 20250114141 | Ryan-Lucas001 |
 
 ## Regras Autorias
+
+1. **Uso Exclusivo para Estudo:**
+* Os filmes do acervo destinam-se apenas à visualização por alunos e professores no âmbito das disciplinas do curso.
+
+2. **Créditos dos Autores:**
+* Todo o filme cadastrado deve obrigatoriamente exibir o nome do criador/realizador e a equipa que participou na produção.
+
+3. **Autorização Simples de Envio:**
+* Quem faz o envio de um filme declara que é o criador do vídeo e permite que ele seja exibido na plataforma para os outros utilizadores.
