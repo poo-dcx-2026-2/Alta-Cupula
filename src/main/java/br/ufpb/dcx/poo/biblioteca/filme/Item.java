@@ -1,16 +1,8 @@
-package br.ufpb.dcx.poo.biblioteca.inicial;
+package br.ufpb.dcx.poo.biblioteca.filme;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Um item do acervo: um livro, um filme, um jogo, um instrumento.
- *
- * <p>Esta classe é ponto de partida, não modelo a seguir. Ela existe para que o
- * projeto compile e execute desde o primeiro dia. Ao longo do semestre você vai
- * decidir se ela permanece assim, se ganha invariantes, se vira uma hierarquia,
- * se delega responsabilidades ou se desaparece.</p>
- */
 public class Item {
 
     private String codigo;

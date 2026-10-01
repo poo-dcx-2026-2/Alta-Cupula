@@ -1,19 +1,15 @@
-package br.ufpb.dcx.poo.biblioteca.inicial;
+package br.ufpb.dcx.poo.biblioteca.filme;
 
 import br.ufpb.dcx.poo.biblioteca.contrato.StatusExemplar;
+import br.ufpb.dcx.poo.biblioteca.filme.Item;
 
-/**
- * A cópia física de um item. O que se empresta é o exemplar, não o item.
- *
- * <p>Ponto de partida, como {@link Item}.</p>
- */
 public class Exemplar {
 
     private String tombo;
-    private Item item;
+    private br.ufpb.dcx.poo.biblioteca.filme.Item item;
     private StatusExemplar status;
 
-    public Exemplar(String tombo, Item item) {
+    public Exemplar(String tombo, br.ufpb.dcx.poo.biblioteca.filme.Item item) {
         this.tombo = tombo;
         this.item = item;
         this.status = StatusExemplar.DISPONIVEL;
@@ -22,7 +18,7 @@ public class Exemplar {
     public String getTombo() { return tombo; }
     public void setTombo(String tombo) { this.tombo = tombo; }
 
-    public Item getItem() { return item; }
+    public br.ufpb.dcx.poo.biblioteca.filme.Item getItem() { return item; }
     public void setItem(Item item) { this.item = item; }
 
     public StatusExemplar getStatus() { return status; }
