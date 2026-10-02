@@ -93,11 +93,11 @@ public class AcervoFilme implements AcervoService {
             throws RecursoNaoEncontradoException {
         Item item = localizar(codigoDoItem);
         if (item == null ){
-            throw new UnsupportedOperationException("Item não encontrado" + codigoDoItem);
+            throw new RecursoNaoEncontradoException("Item não encontrado: " + codigoDoItem);
         }
         List<ExemplarView> resultado = new ArrayList<>();
         for (Exemplar exemplar : item.getExemplares()){
-            resultado.add(new ExemplarView(exemplar.getTombo(), exemplar.getStatus()));
+            resultado.add(new ExemplarView(exemplar.getTombo(), codigoDoItem, exemplar.getStatus()));
         }
         return resultado;
     }
