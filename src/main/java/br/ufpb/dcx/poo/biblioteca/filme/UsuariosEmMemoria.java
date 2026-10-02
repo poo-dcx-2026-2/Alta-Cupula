@@ -1,4 +1,4 @@
-package br.ufpb.dcx.poo.biblioteca.inicial;
+package br.ufpb.dcx.poo.biblioteca.filme;
 
 import java.util.ArrayList;
 import java.util.List;

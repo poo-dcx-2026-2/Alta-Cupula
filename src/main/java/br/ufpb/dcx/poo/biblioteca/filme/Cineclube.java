@@ -1,4 +1,4 @@
-package br.ufpb.dcx.poo.biblioteca.inicial;
+package br.ufpb.dcx.poo.biblioteca.filme;
 
 import br.ufpb.dcx.poo.biblioteca.contrato.AcervoService;
 import br.ufpb.dcx.poo.biblioteca.contrato.Biblioteca;
@@ -7,15 +7,9 @@ import br.ufpb.dcx.poo.biblioteca.contrato.RelatorioService;
 import br.ufpb.dcx.poo.biblioteca.contrato.UsuarioService;
 import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.PersistenciaException;
 
-/**
- * Reúne os quatro serviços em um único ponto de acesso.
- *
- * <p>Guarde esta classe na memória: na Aula 13 você vai descobrir que ela tem nome
- * e que a decisão de existir ou não tem consequências.</p>
- */
-public class BibliotecaInicial implements Biblioteca {
+public class Cineclube implements Biblioteca {
 
-    private final AcervoEmMemoria acervo = new AcervoEmMemoria();
+    private final AcervoFilme acervo = new AcervoFilme();
     private final UsuariosEmMemoria usuarios = new UsuariosEmMemoria();
     private final EmprestimosNaoImplementados emprestimos = new EmprestimosNaoImplementados();
     private final RelatoriosNaoImplementados relatorios = new RelatoriosNaoImplementados();

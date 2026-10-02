@@ -1,4 +1,4 @@
-package br.ufpb.dcx.poo.biblioteca.inicial;
+package br.ufpb.dcx.poo.biblioteca.filme;
 
 import java.nio.file.Path;
 import java.time.LocalDate;

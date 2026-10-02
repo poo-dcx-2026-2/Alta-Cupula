@@ -1,4 +1,4 @@
-package br.ufpb.dcx.poo.biblioteca.inicial;
+package br.ufpb.dcx.poo.biblioteca.filme;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -20,12 +20,13 @@ import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.UsuarioInativoException;
  * {@link EmprestimoService#LIMITE_DE_EMPRESTIMOS} são constantes do contrato: os
  * testes contam com esses valores.</p>
  */
+
 public class EmprestimosNaoImplementados implements EmprestimoService {
 
     @Override
     public String emprestar(String tombo, String matricula, LocalDate data)
             throws RecursoNaoEncontradoException, ExemplarIndisponivelException,
-                   UsuarioInativoException, LimiteDeEmprestimosExcedidoException {
+            UsuarioInativoException, LimiteDeEmprestimosExcedidoException {
         throw new UnsupportedOperationException("Entrega 2: implementar emprestar");
     }
 
