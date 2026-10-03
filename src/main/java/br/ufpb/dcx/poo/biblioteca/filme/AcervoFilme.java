@@ -69,13 +69,37 @@ public class AcervoFilme implements AcervoService {
     @Override
     public void adicionarExemplar(String codigoDoItem, String tombo)
             throws RecursoNaoEncontradoException, RecursoDuplicadoException {
-        throw new UnsupportedOperationException("Entrega 1: implementar adicionarExemplar");
+
+        exigirTextoPreenchido(codigoDoItem, "codigo do item");
+        exigirTextoPreenchido(tombo, "tombo");
+
+        for (Item itemExistente : itens){
+            for (Exemplar exp : itemExistente.getExemplares()){
+                if (exp.getTombo().equals(tombo)){
+                    throw new RecursoDuplicadoException("Já existe um exemplar com o tombo"+ tombo);
+
+                }
+            }
+        }
+        Item item = localizar(codigoDoItem);
+        if (item == null){
+            throw new RecursoNaoEncontradoException("Item não encontrado:" + codigoDoItem);
+        }
+        item.getExemplares().add(new Exemplar(tombo, StatusExemplar.DISPONIVEL));
     }
 
     @Override
     public List<ExemplarView> listarExemplares(String codigoDoItem)
             throws RecursoNaoEncontradoException {
-        throw new UnsupportedOperationException("Entrega 1: implementar listarExemplares");
+        Item item = localizar(codigoDoItem);
+        if (item == null ){
+            throw new RecursoNaoEncontradoException("Item não encontrado: " + codigoDoItem);
+        }
+        List<ExemplarView> resultado = new ArrayList<>();
+        for (Exemplar exemplar : item.getExemplares()){
+            resultado.add(new ExemplarView(exemplar.getTombo(), codigoDoItem, exemplar.getStatus()));
+        }
+        return resultado;
     }
 
     @Override
@@ -86,7 +110,7 @@ public class AcervoFilme implements AcervoService {
 
     private Item localizar(String codigo) {
         for (Item item : itens) {
-            if (item.getCodigo() == codigo) {
+            if (item.getCodigo().equals(codigo)) {
                 return item;
             }
         }
@@ -120,4 +144,5 @@ public class AcervoFilme implements AcervoService {
     List<Item> itens() {
         return itens;
     }
+
 }

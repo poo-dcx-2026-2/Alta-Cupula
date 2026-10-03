@@ -12,21 +12,38 @@ skinparam classAttributeIconSize 0
 hide empty members
 
 class Item {
-  - codigo : String
-  - titulo : String
+  - codigo: String
+  - titulo: String
+  - diretor: String
+  - duracaoMinutos: int
+  - classificacaoEtaria: int
+  + getCodigo(): String
+  + getTitulo(): String
+  + getClassificacaoEtaria(): int
 }
 
 class Exemplar {
-  - tombo : String
+  - tombo: String
+  - disponivel: boolean
+  + getTombo(): String
+  + isDisponivel(): boolean
 }
 
-Item "1" *-- "0..*" Exemplar : possui
+class Usuario {
+  - matricula: String
+  - nome: String
+  - idade: int
+  + getMatricula(): String
+  + getIdade(): int
+}
 
-note bottom of Item
-  Ponto de partida, não modelo pronto.
-  Decidam: quais entidades existem,
-  quem guarda o quê, quais invariantes
-  cada objeto protege.
-end note
+class Emprestimo {
+  - dataEmprestimo: LocalDate
+  - dataDevolucao: LocalDate
+}
+
+Item "1" *-- "0..*" Exemplar : possui >
+Usuario "1" -- "0..*" Emprestimo : realiza >
+Exemplar "1" -- "0..1" Emprestimo : é emprestado >
 
 @enduml
