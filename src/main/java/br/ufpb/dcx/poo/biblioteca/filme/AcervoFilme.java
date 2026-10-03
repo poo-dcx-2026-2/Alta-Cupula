@@ -52,7 +52,7 @@ public class AcervoFilme implements AcervoService {
 
     @Override
     public List<ItemView> buscarPorTitulo(String trecho) {
-        if (trecho == null) {
+        if (trecho == null || trecho.isBlank()) {
             return List.of();
         }
         return itens.stream()
@@ -85,7 +85,7 @@ public class AcervoFilme implements AcervoService {
         if (item == null){
             throw new RecursoNaoEncontradoException("Item não encontrado:" + codigoDoItem);
         }
-        item.getExemplares().add(new Exemplar(tombo, StatusExemplar.DISPONIVEL));
+        item.getExemplares().add(new Exemplar(tombo, StatusExemplar.DISPONIVEL, codigoDoItem));
     }
 
     @Override
