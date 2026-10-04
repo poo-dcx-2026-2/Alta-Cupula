@@ -12,29 +12,38 @@ skinparam classAttributeIconSize 0
 hide empty members
 
 class Item {
-  - codigo: String
-  - titulo: String
-  - diretor: String
-  - duracaoMinutos: int
-  - classificacaoEtaria: int
-  + getCodigo(): String
-  + getTitulo(): String
-  + getClassificacaoEtaria(): int
+ - codigo: String
+ - titulo: String
+ - autoria: String
+ - categoria : String
+ - ano : int
+
+ + Item(codigo : String, titulo : String, autoria : String, categoria : String, ano : int)
+ + getCodigo(): String
+ + getTitulo(): String
+ + getAutoria() : String
+ + getCategoria() : String
+ + getAno() : int
+ + getExemplares() : List<Exemplar>
 }
 
 class Exemplar {
-  - tombo: String
-  - disponivel: boolean
-  + getTombo(): String
-  + isDisponivel(): boolean
+ - tombo: String
+ - disponivel: boolean
+
+ + Exemplar (tombo : String, item : StatusExemplar, codigoDoItem : String)
+ + getTombo(): String
+ + isDisponivel(): boolean
 }
 
 class Usuario {
-  - matricula: String
-  - nome: String
-  - idade: int
-  + getMatricula(): String
-  + getIdade(): int
+ - usuariosPorMatricula : Map<String, UsuarioView>
+
+ + cadastrarUsuario(matricula : String, nome : String) : void
+ + buscarUsuario(matricula : String) : UsuarioView
+ + listarUsuarios() : List<UsuarioView>
+ + desativarUsuario(matricula : String) : void
+ + reativarUsuario(matricula : String) : void
 }
 
 class Emprestimo {

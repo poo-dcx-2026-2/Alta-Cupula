@@ -10,7 +10,7 @@ import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.PersistenciaException;
 public class Cineclube implements Biblioteca {
 
     private final AcervoFilme acervo = new AcervoFilme();
-    private final UsuariosEmMemoria usuarios = new UsuariosEmMemoria();
+    private final Usuario usuarios = new Usuario();
     private final EmprestimosNaoImplementados emprestimos = new EmprestimosNaoImplementados();
     private final RelatoriosNaoImplementados relatorios = new RelatoriosNaoImplementados();
 

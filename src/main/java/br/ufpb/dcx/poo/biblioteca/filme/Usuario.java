@@ -1,7 +1,9 @@
 package br.ufpb.dcx.poo.biblioteca.filme;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import br.ufpb.dcx.poo.biblioteca.contrato.UsuarioService;
 import br.ufpb.dcx.poo.biblioteca.contrato.UsuarioView;
@@ -17,10 +19,9 @@ import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.RecursoNaoEncontradoExceptio
  * paralelas. É proposital. Uma das primeiras decisões da Entrega 1 é definir se
  * isso deve continuar assim.</p>
  */
-public class UsuariosEmMemoria implements UsuarioService {
+public class Usuario implements UsuarioService {
 
-    private final List<String> matriculas = new ArrayList<>();
-    private final List<String> nomes = new ArrayList<>();
+    private final Map<String, UsuarioView> usuariosPorMatricula = new HashMap<>();
 
     @Override
     public void cadastrarUsuario(String matricula, String nome)
@@ -32,28 +33,24 @@ public class UsuariosEmMemoria implements UsuarioService {
         if (nome == null || nome.isBlank()) {
             throw new DadosInvalidosException("O nome é obrigatório.");
         }
-        if (matriculas.contains(matricula)) {
+        if (usuariosPorMatricula.containsKey(matricula)) {
             throw new RecursoDuplicadoException("Já existe usuário com a matrícula " + matricula);
         }
-        matriculas.add(matricula);
-        nomes.add(nome);
+        usuariosPorMatricula.put(matricula, new UsuarioView(matricula, nome, true, 0));
     }
 
     @Override
     public UsuarioView buscarUsuario(String matricula) throws RecursoNaoEncontradoException {
-        int posicao = matriculas.indexOf(matricula);
-        if (posicao < 0) {
+        UsuarioView usuario = usuariosPorMatricula.get(matricula);
+        if (usuario == null) {
             throw new RecursoNaoEncontradoException("Usuário não encontrado: " + matricula);
         }
-        return new UsuarioView(matriculas.get(posicao), nomes.get(posicao), true, 0);
+        return usuario;
     }
 
     @Override
     public List<UsuarioView> listarUsuarios() {
-        List<UsuarioView> resultado = new ArrayList<>();
-        for (int i = 0; i < matriculas.size(); i++) {
-            resultado.add(new UsuarioView(matriculas.get(i), nomes.get(i), true, 0));
-        }
+        List<UsuarioView> resultado = new ArrayList<>(usuariosPorMatricula.values());
         resultado.sort((a, b) -> a.nome().compareToIgnoreCase(b.nome()));
         return resultado;
     }
