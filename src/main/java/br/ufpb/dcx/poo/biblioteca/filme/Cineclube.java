@@ -11,8 +11,8 @@ public class Cineclube implements Biblioteca {
 
     private final AcervoFilme acervo = new AcervoFilme();
     private final Usuario usuarios = new Usuario();
-    private final EmprestimosNaoImplementados emprestimos = new EmprestimosNaoImplementados();
-    private final RelatoriosNaoImplementados relatorios = new RelatoriosNaoImplementados();
+    private final Emprestimo emprestimos = new Emprestimo();
+    private final Relatorios relatorios = new Relatorios();
 
     @Override
     public AcervoService acervo() { return acervo; }
