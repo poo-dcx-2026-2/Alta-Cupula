@@ -28,12 +28,18 @@ class Item {
 }
 
 class Exemplar {
- - tombo: String
- - disponivel: boolean
+    - tombo: String
+    - codigoDoItem: String
+    - item: StatusExemplar
+    - status: StatusExemplar
 
- + Exemplar (tombo : String, item : StatusExemplar, codigoDoItem : String)
- + getTombo(): String
- + isDisponivel(): boolean
+    + Exemplar(tombo: String, item: StatusExemplar, codigoDoItem: String)
+    + getcodigoDoItem(): String
+    + getTombo(): String
+    + getItem(): StatusExemplar
+    + setItem(item: StatusExemplar): void
+    + getStatus(): StatusExemplar
+    + setStatus(status: StatusExemplar): void
 }
 
 class Usuario {
@@ -45,14 +51,57 @@ class Usuario {
  + desativarUsuario(matricula : String) : void
  + reativarUsuario(matricula : String) : void
 }
+class Cineclube {
+        - acervo : AcervoFilme
+        - usuarios : Usuario
+        - emprestimos : Emprestimo
+        - relatorios : RelatoriosNaoImplementados
+        + acervo() : AcervoService
+        + usuarios() : UsuarioService
+        + emprestimos() : EmprestimoService
+        + relatorios() : RelatorioService
+        + salvar() : void
+        + carregar() : void
+}
+class Relatorios {
+        + itensMaisEmprestados(n : int) : List<ItemView>
+        + emprestimosPorCategoria() : Map<String, Long>
+        + usuariosComAtraso(data : LocalDate) : List<UsuarioView>
+        + taxaDeOcupacaoDoAcervo() : double
+        + importarItensEmLote(arquivo : Path) : int
+}
+class AcervoFilme {
+        - itens : List<Item>
+        + cadastrarItem(codigo : String, titulo : String, autoria : String, categoria : String, ano : int) : void
+        + buscarItem(codigo : String) : ItemView
+        + listarItens() : List<ItemView>
+        + buscarPorTitulo(trecho : String) : List<ItemView>
+        + buscarPorCategoria(categoria : String) : List<ItemView>
+        + adicionarExemplar(codigoDoItem : String, tombo : String) : void
+        + listarExemplares(codigoDoItem : String) : List<ExemplarView>
+        + baixarExemplar(tombo : String) : void
+        ~ itens() : List<Item>
+        - localizar(codigo : String) : Item
+        - paraView(item : Item) : ItemView
+        {static} - exigirTextoPreenchido(valor : String, campo : String) : void
 
-class Emprestimo {
-  - dataEmprestimo: LocalDate
-  - dataDevolucao: LocalDate
 }
 
-Item "1" *-- "0..*" Exemplar : possui >
+class Emprestimo {
+    + emprestar(tombo: String, matricula: String, data: LocalDate): String
+    + devolver(tombo: String, data: LocalDate): void
+    + listarEmprestimosDoUsuario(matricula: String): List<EmprestimoView>
+    + listarAtrasados(data: LocalDate): List<EmprestimoView>
+    + reservar(codigoDoItem: String, matricula: String, data: LocalDate): String
+    + listarReservas(codigoDoItem: String): List<ReservaView>
+    + cancelarReserva(idDaReserva: String): void
+}
+
+AcervoFilme "1" *-- "0..*" Exemplar : gerencia / contém >
 Usuario "1" -- "0..*" Emprestimo : realiza >
 Exemplar "1" -- "0..1" Emprestimo : é emprestado >
+Item "1" --* "0..*" AcervoFilme : gerencia / contém <
+
+
 
 @enduml

@@ -21,7 +21,7 @@ import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.UsuarioInativoException;
  * testes contam com esses valores.</p>
  */
 
-public class EmprestimosNaoImplementados implements EmprestimoService {
+public class Emprestimo implements EmprestimoService {
 
     @Override
     public String emprestar(String tombo, String matricula, LocalDate data)
