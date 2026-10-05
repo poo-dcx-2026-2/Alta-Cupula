@@ -17,7 +17,7 @@ import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.PersistenciaException;
  * {@link #importarItensEmLote(Path)} é onde o incremento concorrente da Entrega 3
  * tem motivo real para existir.</p>
  */
-public class RelatoriosNaoImplementados implements RelatorioService {
+public class Relatorios implements RelatorioService {
 
     @Override
     public List<ItemView> itensMaisEmprestados(int n) {

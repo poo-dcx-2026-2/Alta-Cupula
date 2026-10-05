@@ -3,6 +3,8 @@ package br.ufpb.dcx.poo.biblioteca.filme;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.text.Collator;
+import java.util.Locale;
 
 import br.ufpb.dcx.poo.biblioteca.contrato.AcervoService;
 import br.ufpb.dcx.poo.biblioteca.contrato.ExemplarView;
@@ -46,7 +48,10 @@ public class AcervoFilme implements AcervoService {
         for (Item item : itens) {
             resultado.add(paraView(item));
         }
-        resultado.sort((a, b) -> a.titulo().compareToIgnoreCase(b.titulo()));
+        Collator collator = Collator.getInstance(new Locale("pt", "BR"));
+        collator.setStrength(Collator.PRIMARY);
+
+        resultado.sort((a, b) -> collator.compare(a.titulo(), b.titulo()));
         return resultado;
     }
 
