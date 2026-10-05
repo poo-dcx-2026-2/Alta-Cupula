@@ -37,21 +37,20 @@ src/main/java/br/ufpb/dcx/poo/biblioteca/
 │
 ├── Fabrica.java       ← nome e assinatura congelados; o corpo é seu
 │
-└── inicial/           ← ponto de partida; altere, mova, renomeie ou apague
-    ├── Item.java
+└── filme/           ← ponto de partida; altere, mova, renomeie ou apague
+    ├── AcervoFilme.java
+    ├── Cineclube.java
+    ├── Empretimo.java
     ├── Exemplar.java
-    ├── AcervoEmMemoria.java
-    ├── UsuariosEmMemoria.java
-    ├── EmprestimosNaoImplementados.java
-    ├── RelatoriosNaoImplementados.java
-    └── BibliotecaInicial.java
+    ├── Item.java
+    ├── Relatorios.java
+    └── Usuario.java
 
 src/test/java/…       ← seus testes; comece pelos que já estão aqui
 dados/                ← arquivos de exemplo
 .github/workflows/    ← a integração contínua, já configurada
 ```
-
----
+----
 
 ## As duas regras
 
@@ -102,6 +101,9 @@ Sua equipe escolhe um acervo próprio: jogos, filmes, quadrinhos, instrumentos, 
  3. **Autorização Simples de Envio:**
      Ao enviar um filme, o usuário declara ser o autor da obra e autoriza sua exibição na plataforma para os demais usuários cadastrados.
 
+## O possível defeito
+
+O defeito identificado ocorria porque a ordenação padrão de Strings no Java utiliza a tabela ASCII/Unicode, que trata o caractere "Ç" e letras acentuadas como caracteres especiais distantes das letras convencionais, colocando palavras com "Ç" fora da ordem alfabética esperada. A falha foi corrigida aplicando a classe nativa Collator configurada para a localização brasileira (pt-BR) com força primária (Collator.PRIMARY), o que instrui o Java a comparar os textos respeitando as regras ortográficas da língua portuguesa e garantindo que palavras com "Ç" e acentos sejam ordenadas corretamente.
 
 ## Uso de ferramentas de IA
 
