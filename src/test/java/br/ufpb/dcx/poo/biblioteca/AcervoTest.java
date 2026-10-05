@@ -1,34 +1,20 @@
 package br.ufpb.dcx.poo.biblioteca;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 import java.util.List;
 
+import br.ufpb.dcx.poo.biblioteca.contrato.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import br.ufpb.dcx.poo.biblioteca.contrato.Biblioteca;
-import br.ufpb.dcx.poo.biblioteca.contrato.ItemView;
-import br.ufpb.dcx.poo.biblioteca.contrato.StatusExemplar;
 import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.BibliotecaException;
 import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.DadosInvalidosException;
 import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.RecursoDuplicadoException;
 import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.RecursoNaoEncontradoException;
 
-/**
- * Testes públicos do acervo.
- *
- * <p>Os testes ativos passam com o código que veio no repositório. Os marcados com
- * {@code @Disabled} cobrem o que você ainda precisa implementar: remova a anotação
- * quando for implementar cada método.</p>
- *
- * <p>Estes testes são um piso, não um teto. A avaliação considera a suíte que
- * <em>você</em> escreve — cenários, casos-limite e regras de negócio que estes aqui
- * não cobrem.</p>
- */
+import static org.junit.jupiter.api.Assertions.*;
+
 class AcervoTest {
 
     private Biblioteca biblioteca;
@@ -88,9 +74,9 @@ class AcervoTest {
     @Test
     @DisplayName("listar devolve os itens ordenados por título")
     void listarOrdenado() throws BibliotecaException {
-        biblioteca.acervo().cadastrarItem("L1", "Refatoração", "Fowler", "livro", 2004);
-        biblioteca.acervo().cadastrarItem("L2", "Código limpo", "Martin", "livro", 2009);
-        biblioteca.acervo().cadastrarItem("L3", "Java Efetivo", "Bloch", "livro", 2019);
+        biblioteca.acervo().cadastrarItem("F1", "Refatoração", "Fowler", "livro", 2004);
+        biblioteca.acervo().cadastrarItem("F2", "Código limpo", "Martin", "livro", 2009);
+        biblioteca.acervo().cadastrarItem("F3", "Java Efetivo", "Bloch", "livro", 2019);
 
         List<ItemView> itens = biblioteca.acervo().listarItens();
 
@@ -158,4 +144,68 @@ class AcervoTest {
     void buscarPorTituloSemResultado() {
         assertEquals(List.of(), biblioteca.acervo().buscarPorTitulo("inexistente"));
     }
+
+    @Test
+    @DisplayName("não permite cadastrar exemplar com tombo nulo ou em branco")
+    void adicionarExemplarComTomboInvalido() throws BibliotecaException {
+        biblioteca.acervo().cadastrarItem("L1", "Java Efetivo", "Bloch", "livro", 2019);
+
+        assertThrows(DadosInvalidosException.class,
+                () -> biblioteca.acervo().adicionarExemplar("L1", null));
+        assertThrows(DadosInvalidosException.class,
+                () -> biblioteca.acervo().adicionarExemplar("L1", "   "));
+    }
+
+    @Test
+    @DisplayName("passo 22: ordenação de itens deve considerar regras e acentuação do português")
+    void ordenacaoComCaracteresEspeciaisEAcentos() throws BibliotecaException {
+        biblioteca.acervo().cadastrarItem("L1", "Ação", "Autor1", "Ação", 2020);
+        biblioteca.acervo().cadastrarItem("L2", "Abacaxi", "Autor2", "Comedia", 2021);
+        biblioteca.acervo().cadastrarItem("L3", "Zebra", "Autor3", "Aventura", 2019);
+
+        List<ItemView> itens = biblioteca.acervo().listarItens();
+
+        assertEquals("Abacaxi", itens.get(0).titulo());
+        assertEquals("Ação", itens.get(1).titulo());
+        assertEquals("Zebra", itens.get(2).titulo());
+    }
+
+    @Test
+    @DisplayName("busca por trecho nulo deve retornar lista vazia")
+    void buscarPorTituloNuloeBranco() {
+        assertTrue(biblioteca.acervo().buscarPorTitulo("   ").isEmpty());
+        assertTrue(biblioteca.acervo().buscarPorTitulo(null).isEmpty());
+    }
+
+    @Test
+    @DisplayName("listar exemplares de um item inexistente lança RecursoNaoEncontradoException")
+    void listarExemplaresDeItemInexistente() {
+        assertThrows(RecursoNaoEncontradoException.class, () ->
+                biblioteca.acervo().listarExemplares("CODIGO-INEXISTENTE")
+        );
+    }
+
+    @Test
+    @DisplayName("matricula Repetida é recusado")
+    void matriculaDuplicada() throws BibliotecaException {
+        biblioteca.usuarios().cadastrarUsuario("M1", "Alan");
+
+        assertThrows(RecursoDuplicadoException.class,
+                () -> biblioteca.usuarios().cadastrarUsuario("M1", "Ryan"));
+    }
+
+    @Test
+    @DisplayName("passo 24: duas bibliotecas criadas pela fábrica devem ser independentes")
+    void fabricaSempreCriaInstanciasIndependentes() throws BibliotecaException {
+        Biblioteca bibliotecaA = Fabrica.novaBiblioteca();
+        Biblioteca bibliotecaB = Fabrica.novaBiblioteca();
+
+        bibliotecaA.acervo().cadastrarItem("L1", "Java Efetivo", "Bloch", "livro", 2019);
+
+        assertEquals(1, bibliotecaA.acervo().listarItens().size());
+        assertTrue(bibliotecaB.acervo().listarItens().isEmpty());
+    }
+
 }
+
+

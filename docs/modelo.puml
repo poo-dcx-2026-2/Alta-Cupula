@@ -100,6 +100,7 @@ class Emprestimo {
 AcervoFilme "1" *-- "0..*" Exemplar : gerencia / contém >
 Usuario "1" -- "0..*" Emprestimo : realiza >
 Exemplar "1" -- "0..1" Emprestimo : é emprestado >
+Relatorios "1" -- "0..1" Emprestimo : gerencia >
 Item "1" --* "0..*" AcervoFilme : gerencia / contém <
 
 

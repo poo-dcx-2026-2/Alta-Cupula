@@ -1,6 +1,7 @@
 package br.ufpb.dcx.poo.biblioteca.filme;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.text.Collator;
@@ -45,6 +46,9 @@ public class AcervoFilme implements AcervoService {
     @Override
     public List<ItemView> listarItens() {
         List<ItemView> resultado = new ArrayList<>();
+        if (resultado == null) {
+            return List.of();
+        }
         for (Item item : itens) {
             resultado.add(paraView(item));
         }
@@ -104,6 +108,13 @@ public class AcervoFilme implements AcervoService {
         for (Exemplar exemplar : item.getExemplares()){
             resultado.add(new ExemplarView(exemplar.getTombo(), codigoDoItem, exemplar.getStatus()));
         }
+        resultado.sort(Comparator.comparingInt(exemplar -> {
+            String tombo = exemplar.tombo();
+            if (tombo == null) return 0;
+            String ordem = tombo.replaceAll("\\D+", "");
+            return ordem.isEmpty() ? 0 : Integer.parseInt(ordem);
+        }));
+
         return resultado;
     }
 
