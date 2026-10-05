@@ -97,7 +97,7 @@ Sua equipe escolhe um acervo próprio: jogos, filmes, quadrinhos, instrumentos, 
     Cada aluno pode retirar no máximo 2 filmes simultaneamente.
 
 2. **Créditos dos Autores:**
-    Todo filme cadastrado deve exibir o nome do criador/realizador e da equipe de produção.
+    Todo filme cadastrado deve exibir o nome do criador/realizador.
  
  3. **Autorização Simples de Envio:**
      Ao enviar um filme, o usuário declara ser o autor da obra e autoriza sua exibição na plataforma para os demais usuários cadastrados.
@@ -116,14 +116,3 @@ O uso é permitido como apoio, desde que declarado em [`DECLARACAO-DE-USO-DE-IA.
 | Ântoni Êlae | 20250138152 | AntoniElae |
 
 | Ryan Lucas | 20250114141 | Ryan-Lucas001 |
-
-## Regras Autorias
-
-1. **Uso Exclusivo para Estudo:**
-* Os filmes do acervo destinam-se apenas à visualização por alunos e professores no âmbito das disciplinas do curso.
-
-2. **Créditos dos Autores:**
-* Todo o filme cadastrado deve obrigatoriamente exibir o nome do criador/realizador e a equipa que participou na produção.
-
-3. **Autorização Simples de Envio:**
-* Quem faz o envio de um filme declara que é o criador do vídeo e permite que ele seja exibido na plataforma para os outros utilizadores.
