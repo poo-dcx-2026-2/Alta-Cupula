@@ -117,4 +117,4 @@ O uso é permitido como apoio, desde que declarado em [`DECLARACAO-DE-USO-DE-IA.
 
 | Ântoni Êlae | 20250138152 | AntoniElae |
 
-| Ryan Lucas | 20250114141 | Ryan-Lucas001 |
+| Ryan Lucas Morais | 20250114141 | Ryan-Lucas001 |
