@@ -19,9 +19,25 @@ import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.RecursoNaoEncontradoExceptio
  * paralelas. É proposital. Uma das primeiras decisões da Entrega 1 é definir se
  * isso deve continuar assim.</p>
  */
+
 public class Usuario implements UsuarioService {
 
     private final Map<String, UsuarioView> usuariosPorMatricula = new HashMap<>();
+
+    private String matricula;
+    private String nome;
+    private boolean ativo;
+    private int emprestimosAtivos;
+
+    public Usuario() {
+    }
+
+    public Usuario(String matricula, String nome, boolean ativo, int emprestimosAtivos) {
+        this.matricula = matricula;
+        this.nome = nome;
+        this.ativo = ativo;
+        this.emprestimosAtivos = emprestimosAtivos;
+    }
 
     @Override
     public void cadastrarUsuario(String matricula, String nome)
