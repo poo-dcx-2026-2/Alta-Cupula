@@ -19,6 +19,7 @@ import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.RecursoNaoEncontradoExceptio
 public class AcervoFilme implements AcervoService {
 
     private final List<Item> itens = new ArrayList<>();
+    private List<Exemplar> exemplares = new ArrayList<>();
 
     @Override
     public void cadastrarItem(String codigo, String titulo, String autoria,
@@ -94,7 +95,9 @@ public class AcervoFilme implements AcervoService {
         if (item == null){
             throw new RecursoNaoEncontradoException("Item não encontrado:" + codigoDoItem);
         }
+        Exemplar novoExemplar = new Exemplar(tombo, StatusExemplar.DISPONIVEL, codigoDoItem);
         item.getExemplares().add(new Exemplar(tombo, StatusExemplar.DISPONIVEL, codigoDoItem));
+        this.exemplares.add(novoExemplar);
     }
 
     @Override
@@ -121,7 +124,22 @@ public class AcervoFilme implements AcervoService {
     @Override
     public void baixarExemplar(String tombo)
             throws RecursoNaoEncontradoException, OperacaoNaoPermitidaException {
-        throw new UnsupportedOperationException("Entrega 2: implementar baixarExemplar");
+        if (tombo == null || tombo.trim().isEmpty()) {
+            throw new RecursoNaoEncontradoException("Tombo inválido.");
+        }
+
+        Exemplar exemplar = itens.stream()
+                .flatMap(item -> item.getExemplares().stream())
+                .filter(ex -> tombo.equals(ex.getTombo()))
+                .findFirst()
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Exemplar com tombo " + tombo + " não encontrado."));
+
+        if (exemplar.getStatus() == StatusExemplar.EMPRESTADO ||
+                exemplar.getStatus() == StatusExemplar.INDISPONIVEL) {
+            throw new OperacaoNaoPermitidaException("Não é possível baixar um exemplar que está emprestado ou já se encontra indisponível.");
+        }
+
+        exemplar.setStatus(StatusExemplar.INDISPONIVEL);
     }
 
     private Item localizar(String codigo) {
