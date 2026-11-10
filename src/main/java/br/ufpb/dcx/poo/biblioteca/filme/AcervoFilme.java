@@ -1,7 +1,11 @@
-package br.ufpb.dcx.poo.biblioteca.inicial;
+package br.ufpb.dcx.poo.biblioteca.filme;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.text.Collator;
+import java.util.Locale;
 
 import br.ufpb.dcx.poo.biblioteca.contrato.AcervoService;
 import br.ufpb.dcx.poo.biblioteca.contrato.ExemplarView;
@@ -12,22 +16,10 @@ import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.OperacaoNaoPermitidaExceptio
 import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.RecursoDuplicadoException;
 import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.RecursoNaoEncontradoException;
 
-/**
- * Implementação inicial e parcial do acervo, guardando tudo em memória.
- *
- * <p><strong>Leia antes de estender.</strong> Três métodos já funcionam para os casos
- * mais simples: {@code cadastrarItem}, {@code buscarItem} e {@code listarItens}. Os
- * demais lançam {@link UnsupportedOperationException} e são tarefa sua.</p>
- *
- * <p>O que já está pronto <em>não</em> é um bom exemplo a copiar. Há decisões aqui
- * que você deve questionar ao longo da disciplina: como os itens são guardados, como
- * são procurados, quem é responsável por validar o quê e o que cada objeto expõe
- * para fora de si. Parte da avaliação é justamente perceber e justificar essas
- * mudanças.</p>
- */
-public class AcervoEmMemoria implements AcervoService {
+public class AcervoFilme implements AcervoService {
 
     private final List<Item> itens = new ArrayList<>();
+    private List<Exemplar> exemplares = new ArrayList<>();
 
     @Override
     public void cadastrarItem(String codigo, String titulo, String autoria,
@@ -55,16 +47,28 @@ public class AcervoEmMemoria implements AcervoService {
     @Override
     public List<ItemView> listarItens() {
         List<ItemView> resultado = new ArrayList<>();
+        if (resultado == null) {
+            return List.of();
+        }
         for (Item item : itens) {
             resultado.add(paraView(item));
         }
-        resultado.sort((a, b) -> a.titulo().compareToIgnoreCase(b.titulo()));
+        Collator collator = Collator.getInstance(new Locale("pt", "BR"));
+        collator.setStrength(Collator.PRIMARY);
+
+        resultado.sort((a, b) -> collator.compare(a.titulo(), b.titulo()));
         return resultado;
     }
 
     @Override
     public List<ItemView> buscarPorTitulo(String trecho) {
-        throw new UnsupportedOperationException("Entrega 1: implementar buscarPorTitulo");
+        if (trecho == null || trecho.isBlank()) {
+            return List.of();
+        }
+        return itens.stream()
+                .filter(item -> item.getTitulo().toLowerCase().contains(trecho.toLowerCase()))
+                .map(this::paraView)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -75,29 +79,72 @@ public class AcervoEmMemoria implements AcervoService {
     @Override
     public void adicionarExemplar(String codigoDoItem, String tombo)
             throws RecursoNaoEncontradoException, RecursoDuplicadoException {
-        throw new UnsupportedOperationException("Entrega 1: implementar adicionarExemplar");
+
+        exigirTextoPreenchido(codigoDoItem, "codigo do item");
+        exigirTextoPreenchido(tombo, "tombo");
+
+        for (Item itemExistente : itens){
+            for (Exemplar exp : itemExistente.getExemplares()){
+                if (exp.getTombo().equals(tombo)){
+                    throw new RecursoDuplicadoException("Já existe um exemplar com o tombo"+ tombo);
+
+                }
+            }
+        }
+        Item item = localizar(codigoDoItem);
+        if (item == null){
+            throw new RecursoNaoEncontradoException("Item não encontrado:" + codigoDoItem);
+        }
+        Exemplar novoExemplar = new Exemplar(tombo, StatusExemplar.DISPONIVEL, codigoDoItem);
+        item.getExemplares().add(new Exemplar(tombo, StatusExemplar.DISPONIVEL, codigoDoItem));
+        this.exemplares.add(novoExemplar);
     }
 
     @Override
     public List<ExemplarView> listarExemplares(String codigoDoItem)
             throws RecursoNaoEncontradoException {
-        throw new UnsupportedOperationException("Entrega 1: implementar listarExemplares");
+        Item item = localizar(codigoDoItem);
+        if (item == null ){
+            throw new RecursoNaoEncontradoException("Item não encontrado: " + codigoDoItem);
+        }
+        List<ExemplarView> resultado = new ArrayList<>();
+        for (Exemplar exemplar : item.getExemplares()){
+            resultado.add(new ExemplarView(exemplar.getTombo(), codigoDoItem, exemplar.getStatus()));
+        }
+        resultado.sort(Comparator.comparingInt(exemplar -> {
+            String tombo = exemplar.tombo();
+            if (tombo == null) return 0;
+            String ordem = tombo.replaceAll("\\D+", "");
+            return ordem.isEmpty() ? 0 : Integer.parseInt(ordem);
+        }));
+
+        return resultado;
     }
 
     @Override
     public void baixarExemplar(String tombo)
             throws RecursoNaoEncontradoException, OperacaoNaoPermitidaException {
-        throw new UnsupportedOperationException("Entrega 2: implementar baixarExemplar");
+        if (tombo == null || tombo.trim().isEmpty()) {
+            throw new RecursoNaoEncontradoException("Tombo inválido.");
+        }
+
+        Exemplar exemplar = itens.stream()
+                .flatMap(item -> item.getExemplares().stream())
+                .filter(ex -> tombo.equals(ex.getTombo()))
+                .findFirst()
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Exemplar com tombo " + tombo + " não encontrado."));
+
+        if (exemplar.getStatus() == StatusExemplar.EMPRESTADO ||
+                exemplar.getStatus() == StatusExemplar.INDISPONIVEL) {
+            throw new OperacaoNaoPermitidaException("Não é possível baixar um exemplar que está emprestado ou já se encontra indisponível.");
+        }
+
+        exemplar.setStatus(StatusExemplar.INDISPONIVEL);
     }
 
-    /**
-     * Procura um item pelo código. Devolve {@code null} quando não encontra.
-     *
-     * <p>Este é o método que os outros usam para localizar um item.</p>
-     */
     private Item localizar(String codigo) {
         for (Item item : itens) {
-            if (item.getCodigo() == codigo) {
+            if (item.getCodigo().equals(codigo)) {
                 return item;
             }
         }
@@ -131,4 +178,5 @@ public class AcervoEmMemoria implements AcervoService {
     List<Item> itens() {
         return itens;
     }
+
 }
