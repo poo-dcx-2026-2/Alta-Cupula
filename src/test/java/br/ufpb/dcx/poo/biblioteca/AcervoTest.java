@@ -206,6 +206,20 @@ class AcervoTest {
         assertTrue(bibliotecaB.acervo().listarItens().isEmpty());
     }
 
+    @Test
+    @DisplayName("baixar exemplar com sucesso altera status para indisponível")
+    void baixarExemplarComSucesso() throws BibliotecaException {
+        biblioteca.acervo().cadastrarItem("L1", "Java Efetivo", "Bloch", "livro", 2018);
+        biblioteca.acervo().adicionarExemplar("L1", "T01");
+
+        biblioteca.acervo().baixarExemplar("T01");
+
+
+        StatusExemplar statusAtual = biblioteca.acervo().listarExemplares("L1").get(0).status();
+        assertEquals(StatusExemplar.INDISPONIVEL, statusAtual);
+    }
+
+
 }
 
 
