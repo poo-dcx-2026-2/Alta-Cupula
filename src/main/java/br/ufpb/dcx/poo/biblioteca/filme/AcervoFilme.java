@@ -86,20 +86,22 @@ public class AcervoFilme implements AcervoService {
         for (Item itemExistente : itens){
             for (Exemplar exp : itemExistente.getExemplares()){
                 if (exp.getTombo().equals(tombo)){
-                    throw new RecursoDuplicadoException("Já existe um exemplar com o tombo"+ tombo);
-
+                    throw new RecursoDuplicadoException("Já existe um exemplar com o tombo" + tombo);
                 }
             }
         }
+
         Item item = localizar(codigoDoItem);
         if (item == null){
             throw new RecursoNaoEncontradoException("Item não encontrado:" + codigoDoItem);
         }
+
         Exemplar novoExemplar = new Exemplar(tombo, StatusExemplar.DISPONIVEL, codigoDoItem);
-        item.getExemplares().add(new Exemplar(tombo, StatusExemplar.DISPONIVEL, codigoDoItem));
+
+        item.adicionarExemplar(novoExemplar);
+
         this.exemplares.add(novoExemplar);
     }
-
     @Override
     public List<ExemplarView> listarExemplares(String codigoDoItem)
             throws RecursoNaoEncontradoException {
@@ -174,7 +176,6 @@ public class AcervoFilme implements AcervoService {
         }
     }
 
-    /** Acesso interno usado pelos demais serviços da implementação inicial. */
     List<Item> itens() {
         return itens;
     }
