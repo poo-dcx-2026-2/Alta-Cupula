@@ -171,10 +171,14 @@ class AcervoTest {
     }
 
     @Test
-    @DisplayName("busca por trecho nulo deve retornar lista vazia")
+    @DisplayName("busca por trecho nulo ou em branco lança DadosInvalidosException")
     void buscarPorTituloNuloeBranco() {
-        assertTrue(biblioteca.acervo().buscarPorTitulo("   ").isEmpty());
-        assertTrue(biblioteca.acervo().buscarPorTitulo(null).isEmpty());
+        assertThrows(DadosInvalidosException.class, () -> {
+            biblioteca.acervo().buscarPorTitulo("   ");
+        });
+        assertThrows(DadosInvalidosException.class, () -> {
+            biblioteca.acervo().buscarPorTitulo(null);
+        });
     }
 
     @Test
@@ -218,7 +222,6 @@ class AcervoTest {
         StatusExemplar statusAtual = biblioteca.acervo().listarExemplares("L1").get(0).status();
         assertEquals(StatusExemplar.INDISPONIVEL, statusAtual);
     }
-
 
 }
 
