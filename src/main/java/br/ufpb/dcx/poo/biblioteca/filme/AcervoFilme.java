@@ -19,7 +19,7 @@ import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.RecursoNaoEncontradoExceptio
 public class AcervoFilme implements AcervoService {
 
     private final List<Item> itens = new ArrayList<>();
-    private List<Exemplar> exemplares = new ArrayList<>();
+    private final List<Exemplar> exemplares = new ArrayList<>();
 
     @Override
     public void cadastrarItem(String codigo, String titulo, String autoria,

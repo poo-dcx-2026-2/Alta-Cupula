@@ -3,6 +3,7 @@ package br.ufpb.dcx.poo.biblioteca;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -69,5 +70,44 @@ class UsuarioTest {
 
         assertEquals("Ana", biblioteca.usuarios().listarUsuarios().get(0).nome());
         assertEquals("Carlos", biblioteca.usuarios().listarUsuarios().get(2).nome());
+    }
+
+    @Test
+    @DisplayName("Tenta Deativar um usuario")
+    void DesativarUsuarioComSucesso() throws BibliotecaException {
+
+        biblioteca.usuarios().cadastrarUsuario("2026001", "Ana Silva");
+
+        biblioteca.usuarios().desativarUsuario("2026001");
+
+        UsuarioView view = biblioteca.usuarios().buscarUsuario("2026001");
+        assertFalse(view.ativo(), "O usuário deveria estar desativado.");
+    }
+
+    @Test
+    @DisplayName("Tenta Reativar um usuario")
+    void ReativarUsuarioComSucesso() throws BibliotecaException {
+        biblioteca.usuarios().cadastrarUsuario("2026001", "Ana Silva");
+        biblioteca.usuarios().desativarUsuario("2026001");
+
+        biblioteca.usuarios().reativarUsuario("2026001");
+
+        UsuarioView view = biblioteca.usuarios().buscarUsuario("2026001");
+        assertTrue(view.ativo(), "O usuário deveria estar reativado.");
+    }
+    @Test
+    @DisplayName("não é possível desativar usuário com empréstimo ativo")
+    void naoDeveDesativarUsuarioComEmprestimoAtivo() throws BibliotecaException {
+        biblioteca.usuarios().cadastrarUsuario("2026001", "Ana Silva");
+
+        assertThrows(RecursoNaoEncontradoException.class,
+                () -> biblioteca.usuarios().desativarUsuario(""));
+    }
+
+    @Test
+    @DisplayName("reativar usuário inexistente lança RecursoNaoEncontradoException")
+    void reativarInexistente() {
+        assertThrows(RecursoNaoEncontradoException.class,
+                () -> biblioteca.usuarios().reativarUsuario("999999"));
     }
 }

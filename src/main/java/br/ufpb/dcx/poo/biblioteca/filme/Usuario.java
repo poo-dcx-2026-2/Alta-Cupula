@@ -74,11 +74,43 @@ public class Usuario implements UsuarioService {
     @Override
     public void desativarUsuario(String matricula)
             throws RecursoNaoEncontradoException, OperacaoNaoPermitidaException {
-        throw new UnsupportedOperationException("Entrega 2: implementar desativarUsuario");
+        if (matricula == null || matricula.trim().isEmpty()) {
+            throw new RecursoNaoEncontradoException("Matrícula inválida.");
+        }
+
+        UsuarioView usuario = usuariosPorMatricula.get(matricula);
+        if (usuario == null) {
+            throw new RecursoNaoEncontradoException("Usuário com matrícula " + matricula + " não encontrado.");
+        }
+
+        if (usuario.emprestimosAtivos() >= 1) {
+            throw new OperacaoNaoPermitidaException("Não é possível desativar um usuário com empréstimo ativo.");
+        }
+
+        usuariosPorMatricula.put(matricula, new UsuarioView(
+                usuario.matricula(),
+                usuario.nome(),
+                false,
+                usuario.emprestimosAtivos()
+        ));
     }
 
     @Override
     public void reativarUsuario(String matricula) throws RecursoNaoEncontradoException {
-        throw new UnsupportedOperationException("Entrega 2: implementar reativarUsuario");
+        if (matricula == null || matricula.trim().isEmpty()) {
+            throw new RecursoNaoEncontradoException("Matrícula inválida.");
+        }
+
+        UsuarioView usuario = usuariosPorMatricula.get(matricula);
+        if (usuario == null) {
+            throw new RecursoNaoEncontradoException("Usuário com matrícula " + matricula + " não encontrado.");
+        }
+
+        usuariosPorMatricula.put(matricula, new UsuarioView(
+                usuario.matricula(),
+                usuario.nome(),
+                true,
+                usuario.emprestimosAtivos()
+        ));
     }
 }

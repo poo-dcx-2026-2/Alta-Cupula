@@ -1,6 +1,9 @@
-package br.ufpb.dcx.poo.biblioteca.filme;
+package br.ufpb.dcx.poo.biblioteca;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import br.ufpb.dcx.poo.biblioteca.filme.Exemplar;
+import br.ufpb.dcx.poo.biblioteca.filme.Item;
 import org.junit.jupiter.api.Test;
 import java.util.List;
 import br.ufpb.dcx.poo.biblioteca.contrato.StatusExemplar;
