@@ -6,21 +6,34 @@ public class Exemplar {
 
     private final String tombo;
     private final String codigoDoItem;
-    private StatusExemplar item;
     private StatusExemplar status;
-    
-    public Exemplar(String tombo, StatusExemplar item, String codigoDoItem) {
+
+    // Ajustada a ordem para: (tombo, status, codigoDoItem)
+    public Exemplar(String tombo, StatusExemplar status, String codigoDoItem) {
+        if (tombo == null || tombo.trim().isEmpty()) {
+            throw new IllegalArgumentException("O tombo do exemplar não pode ser vazio.");
+        }
+        if (codigoDoItem == null || codigoDoItem.trim().isEmpty()) {
+            throw new IllegalArgumentException("O código do item não pode ser vazio.");
+        }
         this.tombo = tombo;
-        this.item = item;
         this.codigoDoItem = codigoDoItem;
-        this.status = StatusExemplar.DISPONIVEL;
+        this.status = status != null ? status : StatusExemplar.DISPONIVEL;
     }
 
-    public String getcodigoDoItem() {return codigoDoItem;}
-    public String getTombo() { return tombo; }
+    public String getCodigoDoItem() {
+        return codigoDoItem;
+    }
 
-    public StatusExemplar getItem() { return item; }
-    public void setItem(StatusExemplar item) { this.item = item; }
-    public StatusExemplar getStatus() { return status; }
-    public void setStatus(StatusExemplar status) { this.status = status; }
+    public String getTombo() {
+        return tombo;
+    }
+
+    public StatusExemplar getStatus() {
+        return status;
+    }
+
+    public void setStatus(StatusExemplar status) {
+        this.status = status;
+    }
 }
