@@ -63,7 +63,7 @@ public class AcervoFilme implements AcervoService {
     @Override
     public List<ItemView> buscarPorTitulo(String trecho) {
         if (trecho == null || trecho.isBlank()) {
-            return List.of();
+            throw new DadosInvalidosException("O trecho para busca por título não pode ser nulo ou em branco.");
         }
         return itens.stream()
                 .filter(item -> item.getTitulo().toLowerCase().contains(trecho.toLowerCase()))

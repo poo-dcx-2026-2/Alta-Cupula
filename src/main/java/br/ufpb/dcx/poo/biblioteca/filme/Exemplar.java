@@ -8,7 +8,7 @@ public class Exemplar {
     private final String codigoDoItem;
     private StatusExemplar status;
 
-    // Ajustada a ordem para: (tombo, status, codigoDoItem)
+
     public Exemplar(String tombo, StatusExemplar status, String codigoDoItem) {
         if (tombo == null || tombo.trim().isEmpty()) {
             throw new IllegalArgumentException("O tombo do exemplar não pode ser vazio.");
