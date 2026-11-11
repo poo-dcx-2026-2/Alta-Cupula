@@ -25,8 +25,14 @@ public class Item {
     public String getAutoria() { return autoria; }
     public String getCategoria() { return categoria; }
     public int getAno() { return ano; }
-    public List<Exemplar> getExemplares() { return exemplares; }
 
+    public List<Exemplar> getExemplares() {
+        return List.copyOf(exemplares);
+    }
 
-
+    public void adicionarExemplar(Exemplar exemplar) {
+        if (exemplar != null) {
+            this.exemplares.add(exemplar);
+        }
+    }
 }

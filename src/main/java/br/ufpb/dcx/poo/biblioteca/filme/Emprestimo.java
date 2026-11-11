@@ -38,7 +38,6 @@ public class Emprestimo implements EmprestimoService {
             throws RecursoNaoEncontradoException, ExemplarIndisponivelException,
             UsuarioInativoException, LimiteDeEmprestimosExcedidoException {
 
-        // 1. Verificar se o usuário já atingiu o limite de empréstimos ativos
         long emprestimosAtivos = emprestimos.stream()
                 .filter(e -> e.getMatricula().equals(matricula) && e.getDataDevolucaoReal() == null)
                 .count();
@@ -47,7 +46,6 @@ public class Emprestimo implements EmprestimoService {
             throw new LimiteDeEmprestimosExcedidoException("Usuário excedeu o limite de " + LIMITE_DE_EMPRESTIMOS + " empréstimos.");
         }
 
-        // 2. Verificar se o exemplar já está emprestado (indisponível)
         boolean Emprestado = emprestimos.stream()
                 .anyMatch(e -> e.getTombo().equals(tombo) && e.getDataDevolucaoReal() == null);
 
@@ -124,8 +122,6 @@ public class Emprestimo implements EmprestimoService {
             throw new RecursoNaoEncontradoException("Reserva não encontrada com ID: " + idDaReserva);
         }
     }
-
-    //Classes auxiliares internas para modelagem dos registros
 
     private static class RegistroEmprestimo {
         private String id;
