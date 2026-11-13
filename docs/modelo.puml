@@ -8,8 +8,48 @@
 '   plantuml docs/modelo.puml
 ' e versione a imagem gerada ao lado deste arquivo.
 
-skinparam classAttributeIconSize 0
 hide empty members
+skinparam classAttributeIconSize 0
+skinparam defaultTextAlignment center
+
+' --- ENUMS ---
+enum StatusExemplar {
+    DISPONIVEL
+    EMPRESTADO
+    DANIFICADO
+    EXTRAVIADO
+}
+
+' --- INTERFACES ---
+interface EmprestimoService {
+    + emprestar(tombo: String, matricula: String, data: LocalDate): String
+    + devolver(tombo: String, data: LocalDate): void
+    + listarEmprestimosDoUsuario(matricula: String): List<EmprestimoView>
+    + listarAtrasados(data: LocalDate): List<EmprestimoView>
+    + reservar(codigoDoItem: String, matricula: String, data: LocalDate): String
+    + listarReservas(codigoDoItem: String): List<ReservaView>
+    + cancelarReserva(idDaReserva: String): void
+}
+
+interface AcervoService {
+    + cadastrarItem(...)
+    + buscarItem(...)
+}
+
+interface UsuarioService {
+    + cadastrarUsuario(...)
+}
+
+' --- CLASSES DE DOMÍNIO E SERVIÇOS ---
+
+class Cineclube {
+    + acervo(): AcervoService
+    + usuarios(): UsuarioService
+    + emprestimos(): EmprestimoService
+    + relatorios(): RelatorioService
+    + salvar(): void
+    + carregar(): void
+}
 
 class Item {
     - codigo: String
@@ -37,23 +77,6 @@ class Exemplar {
     + setStatus(status: StatusExemplar): void
 }
 
-class Usuario {
-    + cadastrarUsuario(matricula: String, nome: String): void
-    + buscarUsuario(matricula: String): UsuarioView
-    + listarUsuarios(): List<UsuarioView>
-    + desativarUsuario(matricula: String): void
-    + reativarUsuario(matricula: String): void
-}
-
-class Cineclube {
-    + acervo(): AcervoService
-    + usuarios(): UsuarioService
-    + emprestimos(): EmprestimoService
-    + relatorios(): RelatorioService
-    + salvar(): void
-    + carregar(): void
-}
-
 class AcervoFilme {
     - itens: List<Item>
     - exemplares: List<Exemplar>
@@ -71,9 +94,67 @@ class AcervoFilme {
     {static} - exigirTextoPreenchido(valor: String, campo: String): void
 }
 
-AcervoFilme "1" *-- "0..*" Exemplar : gerencia / contém >
-Item "1" --* "0..*" AcervoFilme : gerencia / contém <
+class Usuario {
+    + cadastrarUsuario(matricula: String, nome: String): void
+    + buscarUsuario(matricula: String): UsuarioView
+    + listarUsuarios(): List<UsuarioView>
+    + desativarUsuario(matricula: String): void
+    + reativarUsuario(matricula: String): void
+}
 
+class Emprestimo {
+    - emprestimos: List<RegistroEmprestimo>
+    - reservas: List<RegistroReserva>
+    + Emprestimo()
+    + emprestar(tombo: String, matricula: String, data: LocalDate): String
+    + devolver(tombo: String, data: LocalDate): void
+    + listarEmprestimosDoUsuario(matricula: String): List<EmprestimoView>
+    + listarAtrasados(data: LocalDate): List<EmprestimoView>
+    + reservar(codigoDoItem: String, matricula: String, data: LocalDate): String
+    + listarReservas(codigoDoItem: String): List<ReservaView>
+    + cancelarReserva(idDaReserva: String): void
+}
 
+class RegistroEmprestimo {
+    - id: String
+    - tombo: String
+    - matricula: String
+    - dataEmprestimo: LocalDate
+    - dataPrevista: LocalDate
+    - dataDevolucaoReal: LocalDate
+    + RegistroEmprestimo(id: String, tombo: String, matricula: String, dataEmprestimo: LocalDate, dataPrevista: LocalDate)
+    + getTombo(): String
+    + getMatricula(): String
+    + getDataPrevista(): LocalDate
+    + getDataDevolucaoReal(): LocalDate
+    + setDataDevolucaoReal(dataDevolucaoReal: LocalDate): void
+    + toView(): EmprestimoView
+}
+
+class RegistroReserva {
+    - id: String
+    - codigoDoItem: String
+    - matricula: String
+    - dataReserva: LocalDate
+    + RegistroReserva(id: String, codigoDoItem: String, matricula: String, dataReserva: LocalDate)
+    + getId(): String
+    + getCodigoDoItem(): String
+    + toView(): ReservaView
+}
+
+EmprestimoService <|.. Emprestimo
+AcervoService <|.. AcervoFilme
+UsuarioService <|.. Usuario
+
+Emprestimo *-- RegistroEmprestimo : "emprestimos"
+Emprestimo *-- RegistroReserva : "reservas"
+
+AcervoFilme *-- "0..*" Item : "gerencia"
+AcervoFilme *-- "0..*" Exemplar : "gerencia"
+Item "1" *-- "0..*" Exemplar : "contém"
+
+Cineclube --> AcervoService : "usa"
+Cineclube --> UsuarioService : "usa"
+Cineclube --> EmprestimoService : "usa"
 
 @enduml
