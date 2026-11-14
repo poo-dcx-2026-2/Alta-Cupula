@@ -1,5 +1,6 @@
 package br.ufpb.dcx.poo.biblioteca.filme;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +24,7 @@ import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.UsuarioInativoException;
  {@link EmprestimoService#LIMITE_DE_EMPRESTIMOS} são constantes do contrato: os
  testes contam com esses valores.</p>*/
 
-public class Emprestimo implements EmprestimoService {
+public class Emprestimo implements EmprestimoService, Serializable {
 
     private List<RegistroEmprestimo> emprestimos;
     private List<RegistroReserva> reservas;

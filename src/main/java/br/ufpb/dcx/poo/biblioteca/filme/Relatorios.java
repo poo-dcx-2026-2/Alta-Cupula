@@ -1,5 +1,6 @@
 package br.ufpb.dcx.poo.biblioteca.filme;
 
+import java.io.Serializable;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.List;
@@ -17,7 +18,7 @@ import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.PersistenciaException;
  * {@link #importarItensEmLote(Path)} é onde o incremento concorrente da Entrega 3
  * tem motivo real para existir.</p>
  */
-public class Relatorios implements RelatorioService {
+public class Relatorios implements RelatorioService, Serializable {
 
     @Override
     public List<ItemView> itensMaisEmprestados(int n) {

@@ -7,12 +7,20 @@ import br.ufpb.dcx.poo.biblioteca.contrato.RelatorioService;
 import br.ufpb.dcx.poo.biblioteca.contrato.UsuarioService;
 import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.PersistenciaException;
 
-public class Cineclube implements Biblioteca {
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
-    private final AcervoFilme acervo = new AcervoFilme();
-    private final Usuario usuarios = new Usuario();
-    private final Emprestimo emprestimos = new Emprestimo();
-    private final Relatorios relatorios = new Relatorios();
+public class Cineclube implements Biblioteca, Serializable {
+
+    private  AcervoFilme acervo = new AcervoFilme();
+    private  Usuario usuarios = new Usuario();
+    private  Emprestimo emprestimos = new Emprestimo();
+    private  Relatorios relatorios = new Relatorios();
 
     @Override
     public AcervoService acervo() { return acervo; }
@@ -28,11 +36,40 @@ public class Cineclube implements Biblioteca {
 
     @Override
     public void salvar() throws PersistenciaException {
-        throw new UnsupportedOperationException("Entrega 2: implementar salvar");
+        String diretorioDados = System.getProperty("biblioteca.dados", "dados");
+        Path caminhoDir = Paths.get(diretorioDados);
+
+        try {
+            Files.createDirectories(caminhoDir);
+            Path arquivo = caminhoDir.resolve("biblioteca.dat");
+
+            try (ObjectOutputStream oos = new ObjectOutputStream(Files.newOutputStream(arquivo))) {
+                oos.writeObject(this);
+            }
+        } catch (IOException e) {
+            throw new PersistenciaException("Erro ao salvar os dados da biblioteca: " + e.getMessage());
+        }
     }
 
     @Override
     public void carregar() throws PersistenciaException {
-        throw new UnsupportedOperationException("Entrega 2: implementar carregar");
+        String diretorioDados = System.getProperty("biblioteca.dados", "dados");
+        Path arquivo = Paths.get(diretorioDados, "biblioteca.dat");
+
+        if (!Files.exists(arquivo)) {
+            return;
+        }
+
+        try (ObjectInputStream ois = new ObjectInputStream(Files.newInputStream(arquivo))) {
+            Cineclube bibliotecaCarregada = (Cineclube) ois.readObject();
+
+            this.acervo = bibliotecaCarregada.acervo;
+            this.usuarios = bibliotecaCarregada.usuarios;
+            this.emprestimos = bibliotecaCarregada.emprestimos;
+            this.relatorios = bibliotecaCarregada.relatorios;
+
+        } catch (IOException | ClassNotFoundException e) {
+            throw new PersistenciaException("Erro ao carregar os dados da biblioteca: " + e.getMessage());
+        }
     }
 }

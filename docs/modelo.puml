@@ -12,7 +12,6 @@ hide empty members
 skinparam classAttributeIconSize 0
 skinparam defaultTextAlignment center
 
-' --- ENUMS ---
 enum StatusExemplar {
     DISPONIVEL
     EMPRESTADO
@@ -20,7 +19,6 @@ enum StatusExemplar {
     EXTRAVIADO
 }
 
-' --- INTERFACES ---
 interface EmprestimoService {
     + emprestar(tombo: String, matricula: String, data: LocalDate): String
     + devolver(tombo: String, data: LocalDate): void
@@ -39,8 +37,6 @@ interface AcervoService {
 interface UsuarioService {
     + cadastrarUsuario(...)
 }
-
-' --- CLASSES DE DOMÍNIO E SERVIÇOS ---
 
 class Cineclube {
     + acervo(): AcervoService

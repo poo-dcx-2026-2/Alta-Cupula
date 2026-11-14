@@ -1,5 +1,6 @@
 package br.ufpb.dcx.poo.biblioteca.filme;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -20,7 +21,7 @@ import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.RecursoNaoEncontradoExceptio
  * isso deve continuar assim.</p>
  */
 
-public class Usuario implements UsuarioService {
+public class Usuario implements UsuarioService, Serializable {
 
     private final Map<String, UsuarioView> usuariosPorMatricula = new HashMap<>();
 
