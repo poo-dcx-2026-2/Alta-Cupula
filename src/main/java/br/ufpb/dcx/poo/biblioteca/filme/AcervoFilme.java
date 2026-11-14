@@ -1,5 +1,6 @@
 package br.ufpb.dcx.poo.biblioteca.filme;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -16,7 +17,7 @@ import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.OperacaoNaoPermitidaExceptio
 import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.RecursoDuplicadoException;
 import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.RecursoNaoEncontradoException;
 
-public class AcervoFilme implements AcervoService {
+public class AcervoFilme implements AcervoService, Serializable {
 
     private final List<Item> itens = new ArrayList<>();
     private final List<Exemplar> exemplares = new ArrayList<>();

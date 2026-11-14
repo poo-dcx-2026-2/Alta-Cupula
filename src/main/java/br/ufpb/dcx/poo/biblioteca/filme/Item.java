@@ -1,9 +1,10 @@
 package br.ufpb.dcx.poo.biblioteca.filme;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Item {
+public class Item implements Serializable {
 
     private final String codigo;
     private final String titulo;

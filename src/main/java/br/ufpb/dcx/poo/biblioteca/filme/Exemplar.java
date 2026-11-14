@@ -2,7 +2,9 @@ package br.ufpb.dcx.poo.biblioteca.filme;
 
 import br.ufpb.dcx.poo.biblioteca.contrato.StatusExemplar;
 
-public class Exemplar {
+import java.io.Serializable;
+
+public class Exemplar implements Serializable {
 
     private final String tombo;
     private final String codigoDoItem;
