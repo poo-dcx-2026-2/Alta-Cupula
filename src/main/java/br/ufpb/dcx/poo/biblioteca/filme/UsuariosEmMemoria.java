@@ -1,7 +1,6 @@
 package br.ufpb.dcx.poo.biblioteca.filme;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,7 +20,7 @@ import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.RecursoNaoEncontradoExceptio
  * isso deve continuar assim.</p>
  */
 
-public class Usuario implements UsuarioService, Serializable {
+public class UsuariosEmMemoria implements UsuarioService, Serializable {
 
     private static class DadosUsuario implements Serializable {
         private final String matricula;
@@ -37,7 +36,7 @@ public class Usuario implements UsuarioService, Serializable {
     private final Map<String, DadosUsuario> usuariosPorMatricula = new HashMap<>();
     private Emprestimo emprestimos;
 
-    public Usuario() { }
+    public UsuariosEmMemoria() { }
 
     public void setEmprestimos(Emprestimo emprestimos) {
         this.emprestimos = emprestimos;

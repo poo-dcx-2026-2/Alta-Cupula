@@ -18,7 +18,7 @@ import java.nio.file.Paths;
 public class Cineclube implements Biblioteca, Serializable {
 
     private AcervoFilme acervo = new AcervoFilme();
-    private Usuario usuarios = new Usuario();
+    private UsuariosEmMemoria usuarios = new UsuariosEmMemoria();
     private Emprestimo emprestimos;
     private Relatorios relatorios = new Relatorios();
 

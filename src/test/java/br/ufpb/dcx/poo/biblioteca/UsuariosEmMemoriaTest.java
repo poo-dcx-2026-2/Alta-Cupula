@@ -16,7 +16,7 @@ import br.ufpb.dcx.poo.biblioteca.contrato.UsuarioView;
 import java.time.LocalDate;
 
 /** Testes públicos dos usuários. */
-class UsuarioTest {
+class UsuariosEmMemoriaTest {
 
     private Biblioteca biblioteca;
 
