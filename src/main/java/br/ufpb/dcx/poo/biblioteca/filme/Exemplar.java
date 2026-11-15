@@ -36,9 +36,6 @@ public class Exemplar implements Serializable {
         return status;
     }
 
-    public void setStatus(StatusExemplar status) {
-        this.status = status;
-    }
 
     public Reserva getReservaDona() { return reservaDona; }
     public boolean podeSerEmprestadoPara(String matricula) {
@@ -67,6 +64,9 @@ public class Exemplar implements Serializable {
     }
 
     public void marcarIndisponivel() {
+        if (reservaDona != null) {
+            reservaDona.setExemplarSeparado(null);
+        }
         this.status = StatusExemplar.INDISPONIVEL;
         this.reservaDona = null;
     }
