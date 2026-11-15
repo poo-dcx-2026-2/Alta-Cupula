@@ -16,13 +16,13 @@
 **Contexto.** `UsuarioView.emprestimosAtivos` precisa de valor real.
 
 **Decisão.** `Emprestimo.contarAtivos(matricula)` faz a conta, porque ele guarda
-os registros de empréstimo (Especialista da Informação). `Usuario` consulta
+os registros de empréstimo (Especialista da Informação). `UsuariosEmMemoria` consulta
 esse método.
 
-**Alternativa rejeitada.** O `Usuario` guardar a própria lista de empréstimos:
+**Alternativa rejeitada.** O Usuario guarda a própria lista de empréstimos:
 duplicaria a informação e acoplaria usuário e empréstimo nos dois sentidos.
 
-**Consequência.** Dependência `Usuario -> Emprestimo` (setter, para evitar
+**Consequência.** Dependência `UsuariosEmMemoria -> Emprestimo` (setter, para evitar
 construção circular); a ligação é feita no construtor do `Cineclube`.
 
 ## Exemplar decide se pode ser emprestado (GRASP: Especialista)
@@ -37,7 +37,7 @@ reserva. O status só muda por métodos com significado (`separarPara`,
 ## Usuário: dados internos serializáveis
 **Contexto.** `UsuarioView` é um record do contrato, não serializável.
 
-**Decisão.** `Usuario` guarda `DadosUsuario` (serializável) e monta a
+**Decisão.** `UsuariosEmMemoria` guarda `DadosUsuario` (serializável) e monta a
 `UsuarioView` na consulta.
 
 **Consequência.** `salvar()` funciona e o valor de `emprestimosAtivos` é sempre atual.
@@ -47,6 +47,7 @@ reserva. O status só muda por métodos com significado (`separarPara`,
 quem está fora recebe só views e exceções do contrato, nunca `Item`, `Exemplar`
 ou `Reserva`. `salvar`/`carregar` ficam nela; o diretório é lido dentro dos
 métodos (propriedade `biblioteca.dados`).
+A extensão MultaService é exposta por multas() na classe concreta, fora da interface do contrato.
 
 ## Persistência por serialização Java
 **Decisão.** Todo o grafo do `Cineclube` é gravado em `biblioteca.dat`.
@@ -62,8 +63,15 @@ exemplar, podendo receber o próximo exemplar devolvido.
 **Alternativa rejeitada.** Cancelar a reserva: o usuário perderia a posição.
 
 ## Reservas de usuário desativado
-**Decisão.** `reservar` recusa usuário inativo. (Reservas já existentes de quem
-for desativado depois permanecem; complete aqui o que a equipe decidir.)
+**Contexto.** A §3 não diz o que acontece com as reservas de quem é desativado.
+
+**Decisão.** `reservar` recusa usuário inativo (`UsuarioInativoException`).
+Reservas já existentes permanecem na fila. Quando o exemplar é separado para
+essa reserva, o usuário só consegue emprestar se estiver reativado, pois
+`emprestar` também recusa usuário inativo.
+
+**Consequência.** Um exemplar pode ficar RESERVADO para um usuário inativo
+até ele ser reativado ou a reserva ser cancelada.
 
 ## Extensão autoral: multa por atraso fora do contrato
 **Decisão.** `MultaService` só consulta `EmprestimoView`; `devolver` e o prazo

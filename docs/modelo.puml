@@ -47,6 +47,7 @@ class Exemplar {
     - tombo: String
     - codigoDoItem: String
     - status: StatusExemplar
+    - reservaDona: Reserva
     + podeSerEmprestadoPara(matricula: String): boolean
     + separarPara(reserva: Reserva): void
     + liberar(): void
@@ -59,6 +60,7 @@ class Reserva {
     - codigoDoItem: String
     - matricula: String
     - data: LocalDate
+    - exemplarSeparado: Exemplar
     + temExemplar(): boolean
 }
 
@@ -86,7 +88,7 @@ class AcervoFilme {
     ~ localizarExemplar(tombo: String): Exemplar
 }
 
-class Usuario {
+class UsuariosEmMemoria {
     - usuariosPorMatricula: Map<String, DadosUsuario>
     + cadastrarUsuario(matricula: String, nome: String): void
     + buscarUsuario(matricula: String): UsuarioView
@@ -138,12 +140,12 @@ class Relatorios
 
 Biblioteca <|.. Cineclube
 AcervoService <|.. AcervoFilme
-UsuarioService <|.. Usuario
+UsuarioService <|.. UsuariosEmMemoria
 EmprestimoService <|.. Emprestimo
 RelatorioService <|.. Relatorios
 
 Cineclube *-- "1" AcervoFilme
-Cineclube *-- "1" Usuario
+Cineclube *-- "1" UsuariosEmMemoria
 Cineclube *-- "1" Emprestimo
 Cineclube *-- "1" Relatorios
 
@@ -152,8 +154,8 @@ Item *-- "0..*" Exemplar
 Exemplar --> StatusExemplar
 Exemplar "0..1" -- "0..1" Reserva : separado para >
 
-Usuario *-- "0..*" DadosUsuario
-Usuario ..> Emprestimo : contarAtivos
+UsuariosEmMemoria *-- "0..*" DadosUsuario
+UsuariosEmMemoria ..> Emprestimo : contarAtivos
 
 Emprestimo o-- "1" AcervoFilme
 Emprestimo o-- "1" UsuarioService

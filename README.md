@@ -41,7 +41,7 @@ src/main/java/br/ufpb/dcx/poo/biblioteca/
     ├── Cineclube.java        Facade (implementa Biblioteca, salvar/carregar)
     ├── AcervoFilme.java      itens e exemplares
     ├── Item.java / Exemplar.java
-    ├── Usuario.java          serviço de usuários
+    ├── UsuariosEmMemoria.java          serviço de usuários
     ├── Emprestimo.java       empréstimos e reservas
     ├── Reserva.java / FilaDeReservas.java
     ├── MultaService.java     extensão autoral
