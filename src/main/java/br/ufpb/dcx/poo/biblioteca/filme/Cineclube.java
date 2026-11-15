@@ -17,10 +17,16 @@ import java.nio.file.Paths;
 
 public class Cineclube implements Biblioteca, Serializable {
 
-    private  AcervoFilme acervo = new AcervoFilme();
-    private  Usuario usuarios = new Usuario();
-    private  Emprestimo emprestimos = new Emprestimo();
-    private  Relatorios relatorios = new Relatorios();
+    private AcervoFilme acervo = new AcervoFilme();
+    private Usuario usuarios = new Usuario();
+    private Emprestimo emprestimos;
+    private Relatorios relatorios = new Relatorios();
+
+    public Cineclube() {
+            this.emprestimos = new Emprestimo(acervo, usuarios);
+            this.usuarios.setEmprestimos(this.emprestimos);
+
+    }
 
     @Override
     public AcervoService acervo() { return acervo; }
@@ -67,9 +73,11 @@ public class Cineclube implements Biblioteca, Serializable {
             this.usuarios = bibliotecaCarregada.usuarios;
             this.emprestimos = bibliotecaCarregada.emprestimos;
             this.relatorios = bibliotecaCarregada.relatorios;
+            this.usuarios.setEmprestimos(this.emprestimos);
 
         } catch (IOException | ClassNotFoundException e) {
             throw new PersistenciaException("Erro ao carregar os dados da biblioteca: " + e.getMessage());
         }
     }
+
 }

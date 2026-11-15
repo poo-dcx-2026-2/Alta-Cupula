@@ -7,14 +7,13 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import br.ufpb.dcx.poo.biblioteca.contrato.EmprestimoService;
-import br.ufpb.dcx.poo.biblioteca.contrato.EmprestimoView;
-import br.ufpb.dcx.poo.biblioteca.contrato.ReservaView;
+import br.ufpb.dcx.poo.biblioteca.contrato.*;
 import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.ExemplarIndisponivelException;
 import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.LimiteDeEmprestimosExcedidoException;
 import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.OperacaoNaoPermitidaException;
 import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.RecursoNaoEncontradoException;
 import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.UsuarioInativoException;
+import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.DadosInvalidosException;
 
 /**
 
@@ -26,18 +25,53 @@ import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.UsuarioInativoException;
 
 public class Emprestimo implements EmprestimoService, Serializable {
 
-    private List<RegistroEmprestimo> emprestimos;
-    private List<RegistroReserva> reservas;
+    private final AcervoFilme acervo;
+    private final UsuarioService usuarios;
+    private final List<RegistroEmprestimo> emprestimos = new ArrayList<>();
+    private final List<RegistroReserva> reservas = new ArrayList<>();
 
-    public Emprestimo() {
-        this.emprestimos = new ArrayList<>();
-        this.reservas = new ArrayList<>();
+    public Emprestimo(AcervoFilme acervo, UsuarioService usuarios) {
+        this.acervo = acervo;
+        this.usuarios = usuarios;
+    }
+
+    public int contarAtivos(String matricula) {
+        return (int) emprestimos.stream()
+                .filter(e -> e.getMatricula().equals(matricula) && e.estaAtivo())
+                .count();
     }
 
     @Override
     public String emprestar(String tombo, String matricula, LocalDate data)
             throws RecursoNaoEncontradoException, ExemplarIndisponivelException,
-            UsuarioInativoException, LimiteDeEmprestimosExcedidoException {
+            UsuarioInativoException, LimiteDeEmprestimosExcedidoException, DadosInvalidosException {
+
+        if (contarAtivos(matricula) >= LIMITE_DE_EMPRESTIMOS) {
+            throw new LimiteDeEmprestimosExcedidoException(
+                    "Usuário excedeu o limite de " + LIMITE_DE_EMPRESTIMOS + " empréstimos.");
+        }
+
+        if (matricula == null || matricula.trim().isEmpty()) {
+            throw new DadosInvalidosException("A Matricula do usuario não pode ser vazio.");
+        }
+
+        if (tombo == null || tombo.trim().isEmpty()) {
+            throw new DadosInvalidosException("O tombo do exemplar não pode ser vazio.");
+        }
+
+        Exemplar exemplar = acervo.localizarExemplar(tombo);
+        if (exemplar == null) {
+            throw new RecursoNaoEncontradoException("Exemplar não encontrado: " + tombo);
+        }
+
+        UsuarioView usuario = usuarios.buscarUsuario(matricula);
+        if (!usuario.ativo()) {
+            throw new UsuarioInativoException("Usuário inativo: " + matricula);
+        }
+
+        if (exemplar.getStatus() != StatusExemplar.DISPONIVEL) {
+            throw new ExemplarIndisponivelException("Exemplar indisponível: " + tombo);
+        }
 
         long emprestimosAtivos = emprestimos.stream()
                 .filter(e -> e.getMatricula().equals(matricula) && e.getDataDevolucaoReal() == null)
@@ -54,46 +88,66 @@ public class Emprestimo implements EmprestimoService, Serializable {
             throw new ExemplarIndisponivelException("O exemplar com tombo " + tombo + " já se encontra emprestado.");
         }
 
-        String idEmprestimo = UUID.randomUUID().toString();
-        LocalDate dataPrevista = data.plusDays(PRAZO_EM_DIAS);
+        exemplar.setStatus(StatusExemplar.EMPRESTADO);
+        String id = UUID.randomUUID().toString();
+        emprestimos.add(new RegistroEmprestimo(id, tombo, matricula, data,
+                data.plusDays(PRAZO_EM_DIAS)));
 
-        emprestimos.add(new RegistroEmprestimo(idEmprestimo, tombo, matricula, data, dataPrevista));
+        return id;
 
-        return idEmprestimo;
     }
 
     @Override
     public void devolver(String tombo, LocalDate data)
             throws RecursoNaoEncontradoException, OperacaoNaoPermitidaException {
 
-        RegistroEmprestimo emprestimoAtivo = emprestimos.stream()
-                .filter(e -> e.getTombo().equals(tombo) && e.getDataDevolucaoReal() == null)
-                .findFirst()
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Não há empréstimo ativo para o tombo: " + tombo));
+        if (tombo == null || tombo.isBlank() || data == null) {
+            throw new DadosInvalidosException("Tombo e data são obrigatórios.");
+        }
 
-        emprestimoAtivo.setDataDevolucaoReal(data);
+        Exemplar exemplar = acervo.localizarExemplar(tombo);
+        if (exemplar == null) {
+            throw new RecursoNaoEncontradoException("Exemplar não encontrado: " + tombo);
+        }
+
+        RegistroEmprestimo ativo = emprestimos.stream()
+                .filter(e -> e.getTombo().equals(tombo) && e.estaAtivo())
+                .findFirst()
+                .orElseThrow(() -> new OperacaoNaoPermitidaException(
+                        "Não há empréstimo ativo para o tombo: " + tombo));
+
+        if (data.isBefore(ativo.getDataEmprestimo())) {
+            throw new DadosInvalidosException("Devolução anterior ao empréstimo.");
+        }
+
+        ativo.setDataDevolucaoReal(data);
+        exemplar.setStatus(StatusExemplar.DISPONIVEL);
     }
 
     @Override
     public List<EmprestimoView> listarEmprestimosDoUsuario(String matricula)
             throws RecursoNaoEncontradoException {
 
-        List<EmprestimoView> resultado = emprestimos.stream()
-                .filter(e -> e.getMatricula().equals(matricula))
-                .map(RegistroEmprestimo::toView)
-                .collect(Collectors.toList());
-
-        if (resultado.isEmpty()) {
+        if (matricula == null || matricula.isBlank()) {
+            throw new DadosInvalidosException("A matrícula é obrigatória.");
         }
+        usuarios.buscarUsuario(matricula);
 
-        return resultado;
+        return emprestimos.stream()
+                .filter(e -> e.getMatricula().equals(matricula))
+                .sorted((a, b) -> b.getDataEmprestimo().compareTo(a.getDataEmprestimo()))
+                .map(e -> e.toView(e.getDataEmprestimo()))
+                .collect(Collectors.toList());
     }
 
     @Override
     public List<EmprestimoView> listarAtrasados(LocalDate data) {
+        if (data == null) {
+            throw new DadosInvalidosException("A data é obrigatória.");
+        }
         return emprestimos.stream()
-                .filter(e -> e.getDataDevolucaoReal() == null && data.isAfter(e.getDataPrevista()))
-                .map(RegistroEmprestimo::toView)
+                .filter(e -> e.estaAtrasadoEm(data))
+                .map(e -> e.toView(data))
                 .collect(Collectors.toList());
     }
 
@@ -124,7 +178,7 @@ public class Emprestimo implements EmprestimoService, Serializable {
         }
     }
 
-    private static class RegistroEmprestimo {
+    private static class RegistroEmprestimo implements Serializable {
         private String id;
         private String tombo;
         private String matricula;
@@ -141,18 +195,32 @@ public class Emprestimo implements EmprestimoService, Serializable {
             this.dataDevolucaoReal = null;
         }
 
+        public String getId() { return id; }
+        public LocalDate getDataEmprestimo() { return dataEmprestimo; }
         public String getTombo() { return tombo; }
         public String getMatricula() { return matricula; }
         public LocalDate getDataPrevista() { return dataPrevista; }
         public LocalDate getDataDevolucaoReal() { return dataDevolucaoReal; }
         public void setDataDevolucaoReal(LocalDate dataDevolucaoReal) { this.dataDevolucaoReal = dataDevolucaoReal; }
 
-        public EmprestimoView toView() {
-            return null;
+        public boolean estaAtivo() {
+            return dataDevolucaoReal == null;
+        }
+
+        public boolean estaAtrasadoEm(LocalDate data) {
+            return estaAtivo() && data.isAfter(dataPrevista);
+        }
+
+        public EmprestimoView toView(LocalDate dataReferencia) {
+            StatusEmprestimo status = estaAtrasadoEm(dataReferencia) ? StatusEmprestimo.ATRASADO
+                    : estaAtivo() ? StatusEmprestimo.ATIVO
+                      : StatusEmprestimo.DEVOLVIDO;
+            return new EmprestimoView(id, tombo, matricula, dataEmprestimo,
+                    dataPrevista, dataDevolucaoReal, status);
         }
     }
 
-    private static class RegistroReserva {
+    private static class RegistroReserva implements Serializable {
         private String id;
         private String codigoDoItem;
         private String matricula;
