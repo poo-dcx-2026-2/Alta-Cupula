@@ -28,6 +28,12 @@ public class Cineclube implements Biblioteca, Serializable {
 
     }
 
+    private static PersistenciaException falha(String mensagem, Exception causa) {
+        PersistenciaException excecao = new PersistenciaException(mensagem);
+        excecao.initCause(causa);
+        return excecao;
+    }
+
     @Override
     public AcervoService acervo() { return acervo; }
 
@@ -42,42 +48,34 @@ public class Cineclube implements Biblioteca, Serializable {
 
     @Override
     public void salvar() throws PersistenciaException {
-        String diretorioDados = System.getProperty("biblioteca.dados", "dados");
-        Path caminhoDir = Paths.get(diretorioDados);
-
+        Path diretorio = Paths.get(System.getProperty("biblioteca.dados", "dados"));
         try {
-            Files.createDirectories(caminhoDir);
-            Path arquivo = caminhoDir.resolve("biblioteca.dat");
-
+            Files.createDirectories(diretorio);
+            Path arquivo = diretorio.resolve("biblioteca.dat");
             try (ObjectOutputStream oos = new ObjectOutputStream(Files.newOutputStream(arquivo))) {
                 oos.writeObject(this);
             }
         } catch (IOException e) {
-            throw new PersistenciaException("Erro ao salvar os dados da biblioteca: " + e.getMessage());
+            throw falha("Erro ao salvar os dados da biblioteca", e);
         }
     }
 
     @Override
     public void carregar() throws PersistenciaException {
-        String diretorioDados = System.getProperty("biblioteca.dados", "dados");
-        Path arquivo = Paths.get(diretorioDados, "biblioteca.dat");
-
-        if (!Files.exists(arquivo)) {
+        Path arquivo = Paths.get(System.getProperty("biblioteca.dados", "dados"), "biblioteca.dat");
+        if (Files.notExists(arquivo)) {
             return;
         }
-
+        Cineclube lida;
         try (ObjectInputStream ois = new ObjectInputStream(Files.newInputStream(arquivo))) {
-            Cineclube bibliotecaCarregada = (Cineclube) ois.readObject();
-
-            this.acervo = bibliotecaCarregada.acervo;
-            this.usuarios = bibliotecaCarregada.usuarios;
-            this.emprestimos = bibliotecaCarregada.emprestimos;
-            this.relatorios = bibliotecaCarregada.relatorios;
-            this.usuarios.setEmprestimos(this.emprestimos);
-
-        } catch (IOException | ClassNotFoundException e) {
-            throw new PersistenciaException("Erro ao carregar os dados da biblioteca: " + e.getMessage());
+            lida = (Cineclube) ois.readObject();
+        } catch (IOException | ClassNotFoundException | ClassCastException e) {
+            throw falha("Erro ao carregar os dados da biblioteca", e);
         }
+        this.acervo = lida.acervo;
+        this.usuarios = lida.usuarios;
+        this.emprestimos = lida.emprestimos;
+        this.relatorios = lida.relatorios;
     }
 
 }
