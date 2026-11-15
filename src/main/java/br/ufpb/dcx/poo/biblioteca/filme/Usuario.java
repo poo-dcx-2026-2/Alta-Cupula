@@ -23,13 +23,21 @@ import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.RecursoNaoEncontradoExceptio
 
 public class Usuario implements UsuarioService, Serializable {
 
-    private final Map<String, UsuarioView> usuariosPorMatricula = new HashMap<>();
+    private static class DadosUsuario implements Serializable {
+        private final String matricula;
+        private final String nome;
+        private boolean ativo = true;
 
-    private String matricula;
-    private String nome;
-    private boolean ativo;
-    private int emprestimosAtivos;
+        DadosUsuario(String matricula, String nome) {
+            this.matricula = matricula;
+            this.nome = nome;
+        }
+    }
+
+    private final Map<String, DadosUsuario> usuariosPorMatricula = new HashMap<>();
     private Emprestimo emprestimos;
+
+    public Usuario() { }
 
     public void setEmprestimos(Emprestimo emprestimos) {
         this.emprestimos = emprestimos;
@@ -39,17 +47,24 @@ public class Usuario implements UsuarioService, Serializable {
         return emprestimos == null ? 0 : emprestimos.contarAtivos(matricula);
     }
 
-    private UsuarioView comAtivos(UsuarioView u) {
-        return new UsuarioView(u.matricula(), u.nome(), u.ativo(), ativosDe(u.matricula()));
+    private UsuarioView paraView(DadosUsuario d) {
+        return new UsuarioView(d.matricula, d.nome, d.ativo, ativosDe(d.matricula));
     }
 
-    public Usuario() { }
-
+    private DadosUsuario localizar(String matricula) throws RecursoNaoEncontradoException {
+        if (matricula == null || matricula.isBlank()) {
+            throw new DadosInvalidosException("A matrícula é obrigatória.");
+        }
+        DadosUsuario dados = usuariosPorMatricula.get(matricula);
+        if (dados == null) {
+            throw new RecursoNaoEncontradoException("Usuário não encontrado: " + matricula);
+        }
+        return dados;
+    }
 
     @Override
     public void cadastrarUsuario(String matricula, String nome)
             throws RecursoDuplicadoException {
-
         if (matricula == null || matricula.isBlank()) {
             throw new DadosInvalidosException("A matrícula é obrigatória.");
         }
@@ -59,66 +74,38 @@ public class Usuario implements UsuarioService, Serializable {
         if (usuariosPorMatricula.containsKey(matricula)) {
             throw new RecursoDuplicadoException("Já existe usuário com a matrícula " + matricula);
         }
-        usuariosPorMatricula.put(matricula, new UsuarioView(matricula, nome, true, 0));
+        usuariosPorMatricula.put(matricula, new DadosUsuario(matricula, nome));
     }
 
     @Override
     public UsuarioView buscarUsuario(String matricula) throws RecursoNaoEncontradoException {
-        UsuarioView usuario = usuariosPorMatricula.get(matricula);
-        if (usuario == null) {
-            throw new RecursoNaoEncontradoException("Usuário não encontrado: " + matricula);
-        }
-        return comAtivos(usuario);
+        return paraView(localizar(matricula));
     }
 
     @Override
     public List<UsuarioView> listarUsuarios() {
-        List<UsuarioView> resultado = new ArrayList<>(usuariosPorMatricula.values().stream().map(this::comAtivos).toList());
-        resultado.sort((a, b) -> a.nome().compareToIgnoreCase(b.nome()));
-        return resultado;
+        return usuariosPorMatricula.values().stream()
+                .map(this::paraView)
+                .sorted((a, b) -> a.nome().compareToIgnoreCase(b.nome()))
+                .toList();
     }
 
     @Override
     public void desativarUsuario(String matricula)
             throws RecursoNaoEncontradoException, OperacaoNaoPermitidaException {
-        if (matricula == null || matricula.trim().isEmpty()) {
-            throw new RecursoNaoEncontradoException("Matrícula inválida.");
+        DadosUsuario dados = localizar(matricula);
+        if (!dados.ativo) {
+            return; // idempotente
         }
-
-        UsuarioView usuario = usuariosPorMatricula.get(matricula);
-        if (usuario == null) {
-            throw new RecursoNaoEncontradoException("Usuário com matrícula " + matricula + " não encontrado.");
-        }
-
         if (ativosDe(matricula) >= 1) {
-            throw new OperacaoNaoPermitidaException("Não é possível desativar um usuário com empréstimo ativo.");
+            throw new OperacaoNaoPermitidaException(
+                    "Não é possível desativar um usuário com empréstimo ativo.");
         }
-
-        usuariosPorMatricula.put(matricula, new UsuarioView(
-                usuario.matricula(),
-                usuario.nome(),
-                false,
-                usuario.emprestimosAtivos()
-        ));
+        dados.ativo = false;
     }
 
     @Override
     public void reativarUsuario(String matricula) throws RecursoNaoEncontradoException {
-        if (matricula == null || matricula.trim().isEmpty()) {
-            throw new RecursoNaoEncontradoException("Matrícula inválida.");
-        }
-
-        UsuarioView usuario = usuariosPorMatricula.get(matricula);
-        if (usuario == null) {
-            throw new RecursoNaoEncontradoException("Usuário com matrícula " + matricula + " não encontrado.");
-        }
-
-        usuariosPorMatricula.put(matricula, new UsuarioView(
-                usuario.matricula(),
-                usuario.nome(),
-                true,
-                usuario.emprestimosAtivos()
-        ));
+        localizar(matricula).ativo = true; // idempotente
     }
-
 }
