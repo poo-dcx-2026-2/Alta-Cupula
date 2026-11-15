@@ -4,8 +4,11 @@ import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.Map;
 
 import br.ufpb.dcx.poo.biblioteca.contrato.*;
 import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.ExemplarIndisponivelException;
@@ -28,7 +31,7 @@ public class Emprestimo implements EmprestimoService, Serializable {
     private final AcervoFilme acervo;
     private final UsuarioService usuarios;
     private final List<RegistroEmprestimo> emprestimos = new ArrayList<>();
-    private final List<RegistroReserva> reservas = new ArrayList<>();
+    private final Map<String, FilaDeReservas> filas = new HashMap<>();
 
     public Emprestimo(AcervoFilme acervo, UsuarioService usuarios) {
         this.acervo = acervo;
@@ -41,60 +44,59 @@ public class Emprestimo implements EmprestimoService, Serializable {
                 .count();
     }
 
+    private FilaDeReservas fila(String codigoDoItem) {
+        return filas.computeIfAbsent(codigoDoItem, c -> new FilaDeReservas());
+    }
+
+    /** Depois de devolução ou cancelamento: vai para a próxima reserva sem exemplar, ou fica livre. */
+    private void destinarExemplar(Exemplar exemplar) {
+        Optional<Reserva> proxima = fila(exemplar.getCodigoDoItem()).proximaSemExemplar();
+        if (proxima.isPresent()) {
+            exemplar.separarPara(proxima.get());
+        } else {
+            exemplar.liberar();
+        }
+    }
+
     @Override
     public String emprestar(String tombo, String matricula, LocalDate data)
             throws RecursoNaoEncontradoException, ExemplarIndisponivelException,
-            UsuarioInativoException, LimiteDeEmprestimosExcedidoException, DadosInvalidosException {
+            UsuarioInativoException, LimiteDeEmprestimosExcedidoException {
 
-        if (contarAtivos(matricula) >= LIMITE_DE_EMPRESTIMOS) {
-            throw new LimiteDeEmprestimosExcedidoException(
-                    "Usuário excedeu o limite de " + LIMITE_DE_EMPRESTIMOS + " empréstimos.");
-        }
-
-        if (matricula == null || matricula.trim().isEmpty()) {
-            throw new DadosInvalidosException("A Matricula do usuario não pode ser vazio.");
-        }
-
-        if (tombo == null || tombo.trim().isEmpty()) {
-            throw new DadosInvalidosException("O tombo do exemplar não pode ser vazio.");
+        if (tombo == null || tombo.isBlank() || matricula == null
+                || matricula.isBlank() || data == null) {
+            throw new DadosInvalidosException("Tombo, matrícula e data são obrigatórios.");
         }
 
         Exemplar exemplar = acervo.localizarExemplar(tombo);
         if (exemplar == null) {
             throw new RecursoNaoEncontradoException("Exemplar não encontrado: " + tombo);
         }
-
         UsuarioView usuario = usuarios.buscarUsuario(matricula);
+
         if (!usuario.ativo()) {
             throw new UsuarioInativoException("Usuário inativo: " + matricula);
         }
 
-        if (exemplar.getStatus() != StatusExemplar.DISPONIVEL) {
+        if (!exemplar.podeSerEmprestadoPara(matricula)) {
             throw new ExemplarIndisponivelException("Exemplar indisponível: " + tombo);
         }
 
-        long emprestimosAtivos = emprestimos.stream()
-                .filter(e -> e.getMatricula().equals(matricula) && e.getDataDevolucaoReal() == null)
-                .count();
-
-        if (emprestimosAtivos >= LIMITE_DE_EMPRESTIMOS) {
-            throw new LimiteDeEmprestimosExcedidoException("Usuário excedeu o limite de " + LIMITE_DE_EMPRESTIMOS + " empréstimos.");
+        if (contarAtivos(matricula) >= LIMITE_DE_EMPRESTIMOS) {
+            throw new LimiteDeEmprestimosExcedidoException(
+                    "Usuário excedeu o limite de " + LIMITE_DE_EMPRESTIMOS + " empréstimos.");
         }
 
-        boolean Emprestado = emprestimos.stream()
-                .anyMatch(e -> e.getTombo().equals(tombo) && e.getDataDevolucaoReal() == null);
-
-        if (Emprestado) {
-            throw new ExemplarIndisponivelException("O exemplar com tombo " + tombo + " já se encontra emprestado.");
+        Reserva atendida = exemplar.getReservaDona();
+        if (atendida != null) {
+            fila(exemplar.getCodigoDoItem()).remover(atendida);
         }
+        exemplar.marcarEmprestado();
 
-        exemplar.setStatus(StatusExemplar.EMPRESTADO);
         String id = UUID.randomUUID().toString();
         emprestimos.add(new RegistroEmprestimo(id, tombo, matricula, data,
                 data.plusDays(PRAZO_EM_DIAS)));
-
         return id;
-
     }
 
     @Override
@@ -121,7 +123,7 @@ public class Emprestimo implements EmprestimoService, Serializable {
         }
 
         ativo.setDataDevolucaoReal(data);
-        exemplar.setStatus(StatusExemplar.DISPONIVEL);
+        destinarExemplar(exemplar);
     }
 
     @Override
@@ -155,89 +157,115 @@ public class Emprestimo implements EmprestimoService, Serializable {
     public String reservar(String codigoDoItem, String matricula, LocalDate data)
             throws RecursoNaoEncontradoException, OperacaoNaoPermitidaException {
 
-        String idReserva = UUID.randomUUID().toString();
-        reservas.add(new RegistroReserva(idReserva, codigoDoItem, matricula, data));
-        return idReserva;
+        if (codigoDoItem == null || codigoDoItem.isBlank() || matricula == null
+                || matricula.isBlank() || data == null) {
+            throw new DadosInvalidosException("Item, matrícula e data são obrigatórios.");
+        }
+        Item item = acervo.localizarItem(codigoDoItem);
+        if (item == null) {
+            throw new RecursoNaoEncontradoException("Item não encontrado: " + codigoDoItem);
+        }
+        UsuarioView usuario = usuarios.buscarUsuario(matricula);
+        if (!usuario.ativo()) {
+            throw new UsuarioInativoException("Usuário inativo: " + matricula);
+        }
+        if (item.temExemplarDisponivel()) {
+            throw new OperacaoNaoPermitidaException(
+                    "Há exemplar disponível: empreste em vez de reservar.");
+        }
+        FilaDeReservas fila = fila(codigoDoItem);
+        if (fila.contem(matricula)) {
+            throw new OperacaoNaoPermitidaException("O usuário já reservou este item.");
+        }
+
+        String id = UUID.randomUUID().toString();
+        fila.entrar(new Reserva(id, codigoDoItem, matricula, data));
+        return id;
     }
 
     @Override
     public List<ReservaView> listarReservas(String codigoDoItem)
             throws RecursoNaoEncontradoException {
 
-        return reservas.stream()
-                .filter(r -> r.getCodigoDoItem().equals(codigoDoItem))
-                .map(RegistroReserva::toView)
-                .collect(Collectors.toList());
+        if (codigoDoItem == null || codigoDoItem.isBlank()) {
+            throw new DadosInvalidosException("O código do item é obrigatório.");
+        }
+        if (acervo.localizarItem(codigoDoItem) == null) {
+            throw new RecursoNaoEncontradoException("Item não encontrado: " + codigoDoItem);
+        }
+
+        List<Reserva> naFila = fila(codigoDoItem).todas();
+        List<ReservaView> resultado = new ArrayList<>();
+        for (int i = 0; i < naFila.size(); i++) {
+            resultado.add(paraView(naFila.get(i), i + 1));
+        }
+        return resultado;
     }
 
     @Override
     public void cancelarReserva(String idDaReserva) throws RecursoNaoEncontradoException {
-        boolean removido = reservas.removeIf(r -> r.getId().equals(idDaReserva));
-        if (!removido) {
-            throw new RecursoNaoEncontradoException("Reserva não encontrada com ID: " + idDaReserva);
+        if (idDaReserva == null || idDaReserva.isBlank()) {
+            throw new DadosInvalidosException("O id da reserva é obrigatório.");
+        }
+        final String id = idDaReserva;
+
+        Reserva reserva = null;
+        for (FilaDeReservas f : filas.values()) {
+            Optional<Reserva> achada = f.buscarPorId(id);
+            if (achada.isPresent()) {
+                reserva = achada.get();
+                break;
+            }
+        }
+        if (reserva == null) {
+            throw new RecursoNaoEncontradoException("Reserva não encontrada: " + id);
+        }
+        Exemplar separado = reserva.getExemplarSeparado();
+        fila(reserva.getCodigoDoItem()).remover(reserva);
+        if (separado != null) {
+            destinarExemplar(separado);
         }
     }
 
+    private ReservaView paraView(Reserva r, int posicao) {
+        return new ReservaView(r.getId(), r.getCodigoDoItem(),
+                r.getMatricula(), r.getData(), posicao);
+    }
+
     private static class RegistroEmprestimo implements Serializable {
-        private String id;
-        private String tombo;
-        private String matricula;
-        private LocalDate dataEmprestimo;
-        private LocalDate dataPrevista;
+        private final String id;
+        private final String tombo;
+        private final String matricula;
+        private final LocalDate dataEmprestimo;
+        private final LocalDate dataPrevista;
         private LocalDate dataDevolucaoReal;
 
-        public RegistroEmprestimo(String id, String tombo, String matricula, LocalDate dataEmprestimo, LocalDate dataPrevista) {
+        RegistroEmprestimo(String id, String tombo, String matricula,
+                           LocalDate dataEmprestimo, LocalDate dataPrevista) {
             this.id = id;
             this.tombo = tombo;
             this.matricula = matricula;
             this.dataEmprestimo = dataEmprestimo;
             this.dataPrevista = dataPrevista;
-            this.dataDevolucaoReal = null;
         }
 
-        public String getId() { return id; }
-        public LocalDate getDataEmprestimo() { return dataEmprestimo; }
-        public String getTombo() { return tombo; }
-        public String getMatricula() { return matricula; }
-        public LocalDate getDataPrevista() { return dataPrevista; }
-        public LocalDate getDataDevolucaoReal() { return dataDevolucaoReal; }
-        public void setDataDevolucaoReal(LocalDate dataDevolucaoReal) { this.dataDevolucaoReal = dataDevolucaoReal; }
+        String getTombo() { return tombo; }
+        String getMatricula() { return matricula; }
+        LocalDate getDataEmprestimo() { return dataEmprestimo; }
+        void setDataDevolucaoReal(LocalDate data) { this.dataDevolucaoReal = data; }
 
-        public boolean estaAtivo() {
-            return dataDevolucaoReal == null;
-        }
+        boolean estaAtivo() { return dataDevolucaoReal == null; }
 
-        public boolean estaAtrasadoEm(LocalDate data) {
+        boolean estaAtrasadoEm(LocalDate data) {
             return estaAtivo() && data.isAfter(dataPrevista);
         }
 
-        public EmprestimoView toView(LocalDate dataReferencia) {
+        EmprestimoView toView(LocalDate dataReferencia) {
             StatusEmprestimo status = estaAtrasadoEm(dataReferencia) ? StatusEmprestimo.ATRASADO
                     : estaAtivo() ? StatusEmprestimo.ATIVO
                       : StatusEmprestimo.DEVOLVIDO;
             return new EmprestimoView(id, tombo, matricula, dataEmprestimo,
                     dataPrevista, dataDevolucaoReal, status);
-        }
-    }
-
-    private static class RegistroReserva implements Serializable {
-        private String id;
-        private String codigoDoItem;
-        private String matricula;
-        private LocalDate dataReserva;
-
-        public RegistroReserva(String id, String codigoDoItem, String matricula, LocalDate dataReserva) {
-            this.id = id;
-            this.codigoDoItem = codigoDoItem;
-            this.matricula = matricula;
-            this.dataReserva = dataReserva;
-        }
-
-        public String getId() { return id; }
-        public String getCodigoDoItem() { return codigoDoItem; }
-
-        public ReservaView toView() {
-            return null;
         }
     }
 }

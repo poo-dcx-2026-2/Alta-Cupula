@@ -9,6 +9,7 @@ public class Exemplar implements Serializable {
     private final String tombo;
     private final String codigoDoItem;
     private StatusExemplar status;
+    private Reserva reservaDona;
 
 
     public Exemplar(String tombo, StatusExemplar status, String codigoDoItem) {
@@ -37,5 +38,36 @@ public class Exemplar implements Serializable {
 
     public void setStatus(StatusExemplar status) {
         this.status = status;
+    }
+
+    public Reserva getReservaDona() { return reservaDona; }
+    public boolean podeSerEmprestadoPara(String matricula) {
+        if (status == StatusExemplar.DISPONIVEL) {
+            return true;
+        }
+        return status == StatusExemplar.RESERVADO
+                && reservaDona != null
+                && reservaDona.getMatricula().equals(matricula);
+    }
+
+    public void separarPara(Reserva reserva) {
+        this.status = StatusExemplar.RESERVADO;
+        this.reservaDona = reserva;
+        reserva.setExemplarSeparado(this);
+    }
+
+    public void liberar() {
+        this.status = StatusExemplar.DISPONIVEL;
+        this.reservaDona = null;
+    }
+
+    public void marcarEmprestado() {
+        this.status = StatusExemplar.EMPRESTADO;
+        this.reservaDona = null;
+    }
+
+    public void marcarIndisponivel() {
+        this.status = StatusExemplar.INDISPONIVEL;
+        this.reservaDona = null;
     }
 }

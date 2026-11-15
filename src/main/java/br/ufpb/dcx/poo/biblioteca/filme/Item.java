@@ -1,5 +1,7 @@
 package br.ufpb.dcx.poo.biblioteca.filme;
 
+import br.ufpb.dcx.poo.biblioteca.contrato.StatusExemplar;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,8 +29,13 @@ public class Item implements Serializable {
     public String getCategoria() { return categoria; }
     public int getAno() { return ano; }
 
+
     public List<Exemplar> getExemplares() {
         return List.copyOf(exemplares);
+    }
+
+    public boolean temExemplarDisponivel() {
+        return exemplares.stream().anyMatch(e -> e.getStatus() == StatusExemplar.DISPONIVEL);
     }
 
     public void adicionarExemplar(Exemplar exemplar) {
