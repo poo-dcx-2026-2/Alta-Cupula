@@ -35,16 +35,17 @@ src/main/java/br/ufpb/dcx/poo/biblioteca/
 │   ├── Status*.java                 estados de exemplar e de empréstimo
 │   └── excecoes/                    a hierarquia de erros do sistema
 │
-├── Fabrica.java       ← nome e assinatura congelados; o corpo é seu
+├── Fabrica.java       ← devolve new Cineclube()
 │
-└── inicial/           ← ponto de partida; altere, mova, renomeie ou apague
-    ├── Item.java
-    ├── Exemplar.java
-    ├── AcervoEmMemoria.java
-    ├── UsuariosEmMemoria.java
-    ├── EmprestimosNaoImplementados.java
-    ├── RelatoriosNaoImplementados.java
-    └── BibliotecaInicial.java
+└── filme/             ← implementação da equipe
+    ├── Cineclube.java        Facade (implementa Biblioteca, salvar/carregar)
+    ├── AcervoFilme.java      itens e exemplares
+    ├── Item.java / Exemplar.java
+    ├── Usuario.java          serviço de usuários
+    ├── Emprestimo.java       empréstimos e reservas
+    ├── Reserva.java / FilaDeReservas.java
+    ├── MultaService.java     extensão autoral
+    └── Relatorios.java       Entrega 3
 
 src/test/java/…       ← seus testes; comece pelos que já estão aqui
 dados/                ← arquivos de exemplo
@@ -85,14 +86,28 @@ Isso é proposital. Encontrar esse tipo de defeito — reproduzir, escrever o te
 
 ---
 
-## Extensão autoral
-
-Sua equipe escolhe um acervo próprio: jogos, filmes, quadrinhos, instrumentos, obras locais, recursos de laboratório. A extensão vive **por fora** do contrato — novos tipos, novos serviços, novas regras — e precisa incluir ao menos **uma regra de negócio própria**, documentada abaixo, que os testes de correção não conhecem e que você demonstra na defesa.
+## Extensão autoral: multa por atraso
+- O que é: R$ 0,50 por dia de atraso, calculado a partir da data informada.
+- Como usar: new Cineclube().multas().multaTotalDoUsuario(matricula, data)
+- Onde está: filme/MultaService.java; testes em MultaTest.
+- Observação: não altera o contrato; devolver continua devolvendo.
 
 ### Nossa extensão
 
-> Substitua esta seção: qual acervo, qual regra de negócio própria, o que ela muda no comportamento do sistema.
+**Acervo:** filmes de um cineclube (classes `Cineclube`, `AcervoFilme`).
 
+**Regra de negócio própria: multa por atraso.**
+- **O que é:** cada dia de atraso na devolução custa R$ 0,50. A multa de um empréstimo devolvido fica congelada na data da devolução; a de um empréstimo ainda ativo cresce até a data de referência informada.
+- **O que muda no sistema:** nada no contrato. `devolver` continua devolvendo, mesmo com atraso, e o prazo continua sendo `PRAZO_EM_DIAS`. A multa é só consultada num serviço à parte.
+- **Como usar:**
+
+  ```java
+  Cineclube cineclube = new Cineclube();
+  BigDecimal devido = cineclube.multas()
+          .multaTotalDoUsuario("2026001", LocalDate.of(2026, 11, 19));
+  ```
+
+- **Onde está no código:** `filme/MultaService.java`; testes em `MultaTest`.
 ---
 
 ## Uso de ferramentas de IA
@@ -104,8 +119,6 @@ O uso é permitido como apoio, desde que declarado em [`DECLARACAO-DE-USO-DE-IA.
 ## Equipe
 
 | Nome | Matrícula | GitHub |
-
+|---|---|---|
 | Ântoni Êlae | 20250138152 | AntoniElae |
-
 | Ryan Lucas | 20250114141 | Ryan-Lucas001 |
-
