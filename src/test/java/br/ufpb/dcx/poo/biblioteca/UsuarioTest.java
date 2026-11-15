@@ -27,6 +27,13 @@ class UsuarioTest {
     }
 
     @Test
+    void diagnostico() {
+        Biblioteca b = Fabrica.novaBiblioteca();
+        System.out.println(b.getClass().getName());
+        System.out.println(b.usuarios());
+    }
+
+    @Test
     @DisplayName("usuário cadastrado começa ativo e sem empréstimos")
     void cadastrarEBuscar() throws BibliotecaException {
         biblioteca.usuarios().cadastrarUsuario("2026001", "Ana Souza");

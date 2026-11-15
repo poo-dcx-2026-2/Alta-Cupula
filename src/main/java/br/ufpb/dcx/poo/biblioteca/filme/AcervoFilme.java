@@ -176,6 +176,16 @@ public class AcervoFilme implements AcervoService, Serializable {
             throw new DadosInvalidosException("O campo " + campo + " é obrigatório.");
         }
     }
+    Exemplar localizarExemplar(String tombo) {
+        for (Item item : itens) {
+            for (Exemplar e : item.getExemplares()) {
+                if (e.getTombo().equals(tombo)) {
+                    return e;
+                }
+            }
+        }
+        return null;
+    }
 
     List<Item> itens() {
         return itens;

@@ -29,16 +29,22 @@ public class Usuario implements UsuarioService, Serializable {
     private String nome;
     private boolean ativo;
     private int emprestimosAtivos;
+    private Emprestimo emprestimos;
 
-    public Usuario() {
+    public void setEmprestimos(Emprestimo emprestimos) {
+        this.emprestimos = emprestimos;
     }
 
-    public Usuario(String matricula, String nome, boolean ativo, int emprestimosAtivos) {
-        this.matricula = matricula;
-        this.nome = nome;
-        this.ativo = ativo;
-        this.emprestimosAtivos = emprestimosAtivos;
+    private int ativosDe(String matricula) {
+        return emprestimos == null ? 0 : emprestimos.contarAtivos(matricula);
     }
+
+    private UsuarioView comAtivos(UsuarioView u) {
+        return new UsuarioView(u.matricula(), u.nome(), u.ativo(), ativosDe(u.matricula()));
+    }
+
+    public Usuario() { }
+
 
     @Override
     public void cadastrarUsuario(String matricula, String nome)
@@ -62,12 +68,12 @@ public class Usuario implements UsuarioService, Serializable {
         if (usuario == null) {
             throw new RecursoNaoEncontradoException("Usuário não encontrado: " + matricula);
         }
-        return usuario;
+        return comAtivos(usuario);
     }
 
     @Override
     public List<UsuarioView> listarUsuarios() {
-        List<UsuarioView> resultado = new ArrayList<>(usuariosPorMatricula.values());
+        List<UsuarioView> resultado = new ArrayList<>(usuariosPorMatricula.values().stream().map(this::comAtivos).toList());
         resultado.sort((a, b) -> a.nome().compareToIgnoreCase(b.nome()));
         return resultado;
     }
@@ -84,7 +90,7 @@ public class Usuario implements UsuarioService, Serializable {
             throw new RecursoNaoEncontradoException("Usuário com matrícula " + matricula + " não encontrado.");
         }
 
-        if (usuario.emprestimosAtivos() >= 1) {
+        if (ativosDe(matricula) >= 1) {
             throw new OperacaoNaoPermitidaException("Não é possível desativar um usuário com empréstimo ativo.");
         }
 
@@ -114,4 +120,5 @@ public class Usuario implements UsuarioService, Serializable {
                 usuario.emprestimosAtivos()
         ));
     }
+
 }
