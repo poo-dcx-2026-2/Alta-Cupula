@@ -95,7 +95,7 @@ public class Usuario implements UsuarioService, Serializable {
             throws RecursoNaoEncontradoException, OperacaoNaoPermitidaException {
         DadosUsuario dados = localizar(matricula);
         if (!dados.ativo) {
-            return; // idempotente
+            return;
         }
         if (ativosDe(matricula) >= 1) {
             throw new OperacaoNaoPermitidaException(
@@ -106,6 +106,6 @@ public class Usuario implements UsuarioService, Serializable {
 
     @Override
     public void reativarUsuario(String matricula) throws RecursoNaoEncontradoException {
-        localizar(matricula).ativo = true; // idempotente
+        localizar(matricula).ativo = true;
     }
 }

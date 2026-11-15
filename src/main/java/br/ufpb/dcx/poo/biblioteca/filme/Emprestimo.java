@@ -48,7 +48,6 @@ public class Emprestimo implements EmprestimoService, Serializable {
         return filas.computeIfAbsent(codigoDoItem, c -> new FilaDeReservas());
     }
 
-    /** Depois de devolução ou cancelamento: vai para a próxima reserva sem exemplar, ou fica livre. */
     private void destinarExemplar(Exemplar exemplar) {
         Optional<Reserva> proxima = fila(exemplar.getCodigoDoItem()).proximaSemExemplar();
         if (proxima.isPresent()) {
