@@ -72,6 +72,7 @@ public class AcervoFilme implements AcervoService, Serializable {
                 && item.getCategoria().equalsIgnoreCase(categoria));
     }
 
+
     private List<ItemView> buscarOrdenado(Predicate<Item> filtro) {
         Collator collator = Collator.getInstance(new Locale("pt", "BR"));
         collator.setStrength(Collator.PRIMARY);
@@ -123,15 +124,17 @@ public class AcervoFilme implements AcervoService, Serializable {
     @Override
     public void baixarExemplar(String tombo)
             throws RecursoNaoEncontradoException, OperacaoNaoPermitidaException {
-        if (tombo == null || tombo.trim().isEmpty()) {
-            throw new RecursoNaoEncontradoException("Tombo inválido.");
-        }
+        exigirTextoPreenchido(tombo, "tombo");
 
         Exemplar exemplar = localizarExemplar(tombo);
         if (exemplar == null) {
             throw new RecursoNaoEncontradoException("Exemplar com tombo " + tombo + " não encontrado.");
         }
-
+        if (exemplar.getStatus() == StatusExemplar.EMPRESTADO
+                || exemplar.getStatus() == StatusExemplar.INDISPONIVEL) {
+            throw new OperacaoNaoPermitidaException(
+                    "Não é possível baixar um exemplar emprestado ou já baixado.");
+        }
         exemplar.marcarIndisponivel();
     }
 

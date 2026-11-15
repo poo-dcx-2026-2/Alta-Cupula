@@ -97,4 +97,34 @@ class ReservaTest {
         assertThrows(DadosInvalidosException.class,
                 () -> biblioteca.emprestimos().cancelarReserva(" "));
     }
+    @Test
+    void baixarExemplarEmprestadoEhRecusado() throws BibliotecaException {
+        biblioteca.emprestimos().emprestar("T-1", "2026001", SEGUNDA);
+        assertThrows(OperacaoNaoPermitidaException.class,
+                () -> biblioteca.acervo().baixarExemplar("T-1"));
+        assertEquals(StatusExemplar.EMPRESTADO, statusDeT1());
+    }
+
+    @Test
+    void baixarDuasVezesEhRecusado() throws BibliotecaException {
+        biblioteca.acervo().baixarExemplar("T-1");
+        assertThrows(OperacaoNaoPermitidaException.class,
+                () -> biblioteca.acervo().baixarExemplar("T-1"));
+    }
+
+    @Test
+    void baixarComTomboEmBrancoOuInexistente() {
+        assertThrows(DadosInvalidosException.class, () -> biblioteca.acervo().baixarExemplar(" "));
+        assertThrows(RecursoNaoEncontradoException.class, () -> biblioteca.acervo().baixarExemplar("X"));
+    }
+
+    @Test
+    void baixarExemplarReservadoSoltaAReserva() throws BibliotecaException {
+        biblioteca.emprestimos().emprestar("T-1", "2026001", SEGUNDA);
+        biblioteca.emprestimos().reservar("L1", "2026002", SEGUNDA);
+        biblioteca.emprestimos().devolver("T-1", SEGUNDA.plusDays(1)); // RESERVADO
+        biblioteca.acervo().baixarExemplar("T-1");
+        assertEquals(StatusExemplar.INDISPONIVEL, statusDeT1());
+        assertEquals(1, biblioteca.emprestimos().listarReservas("L1").size());
+    }
 }
