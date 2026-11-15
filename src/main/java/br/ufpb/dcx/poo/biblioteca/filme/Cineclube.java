@@ -27,6 +27,7 @@ public class Cineclube implements Biblioteca, Serializable {
             this.usuarios.setEmprestimos(this.emprestimos);
 
     }
+    public MultaService multas() { return new MultaService(emprestimos); }
 
     @Override
     public AcervoService acervo() { return acervo; }
