@@ -5,16 +5,15 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
+import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import br.ufpb.dcx.poo.biblioteca.contrato.Biblioteca;
 import br.ufpb.dcx.poo.biblioteca.contrato.UsuarioView;
-import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.BibliotecaException;
-import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.DadosInvalidosException;
-import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.RecursoDuplicadoException;
-import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.RecursoNaoEncontradoException;
+
+import java.time.LocalDate;
 
 /** Testes públicos dos usuários. */
 class UsuarioTest {
@@ -27,6 +26,7 @@ class UsuarioTest {
     }
 
     @Test
+    @DisplayName("Verificação para criação da biblioteca")
     void diagnostico() {
         Biblioteca b = Fabrica.novaBiblioteca();
         System.out.println(b.getClass().getName());
@@ -106,9 +106,39 @@ class UsuarioTest {
     @DisplayName("não é possível desativar usuário com empréstimo ativo")
     void naoDeveDesativarUsuarioComEmprestimoAtivo() throws BibliotecaException {
         biblioteca.usuarios().cadastrarUsuario("2026001", "Ana Silva");
+        biblioteca.acervo().cadastrarItem("L1", "Refatoração", "Fowler", "livro", 2004);
+        biblioteca.acervo().adicionarExemplar("L1", "T-1");
+        biblioteca.emprestimos().emprestar("T-1", "2026001", LocalDate.of(2026, 11, 2));
 
-        assertThrows(RecursoNaoEncontradoException.class,
-                () -> biblioteca.usuarios().desativarUsuario(""));
+        assertThrows(OperacaoNaoPermitidaException.class,
+                () -> biblioteca.usuarios().desativarUsuario("2026001"));
+    }
+    @Test
+    @DisplayName("não é possível desativar com matricula em branco")
+    void desativarComMatriculaEmBrancoLancaDadosInvalidos() {
+        assertThrows(DadosInvalidosException.class,
+                () -> biblioteca.usuarios().desativarUsuario("   "));
+    }
+
+    @Test
+    @DisplayName("não é possível desativar com matricula nula")
+    void desativarComMatriculaNulaLancaDadosInvalidos() {
+        assertThrows(DadosInvalidosException.class,
+                () -> biblioteca.usuarios().desativarUsuario(null));
+    }
+
+    @Test
+    @DisplayName("não é possível reativar com matricula em branco")
+    void reativarComMatriculaEmBrancoLancaDadosInvalidos() {
+        assertThrows(DadosInvalidosException.class,
+                () -> biblioteca.usuarios().reativarUsuario(""));
+    }
+
+    @Test
+    @DisplayName("não é possível buscar com matricula em branco")
+    void buscarComMatriculaEmBrancoLancaDadosInvalidos() {
+        assertThrows(DadosInvalidosException.class,
+                () -> biblioteca.usuarios().buscarUsuario(" "));
     }
 
     @Test
