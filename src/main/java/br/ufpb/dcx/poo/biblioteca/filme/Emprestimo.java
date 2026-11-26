@@ -18,14 +18,6 @@ import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.RecursoNaoEncontradoExceptio
 import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.UsuarioInativoException;
 import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.DadosInvalidosException;
 
-/**
-
- Esqueleto dos empréstimos. Conteúdo da Entrega 2.*
- <p>As regras estão no enunciado da entrega, não aqui. Repare que
- {@link EmprestimoService#PRAZO_EM_DIAS} e
- {@link EmprestimoService#LIMITE_DE_EMPRESTIMOS} são constantes do contrato: os
- testes contam com esses valores.</p>*/
-
 public class Emprestimo implements EmprestimoService, Serializable {
 
     private final AcervoFilme acervo;
@@ -96,6 +88,11 @@ public class Emprestimo implements EmprestimoService, Serializable {
         emprestimos.add(new RegistroEmprestimo(id, tombo, matricula, data,
                 data.plusDays(PRAZO_EM_DIAS)));
         return id;
+    }
+    List<EmprestimoView> todos() {
+        return emprestimos.stream()
+                .map(e -> e.toView(e.getDataEmprestimo()))
+                .toList();
     }
 
     @Override
@@ -266,5 +263,6 @@ public class Emprestimo implements EmprestimoService, Serializable {
             return new EmprestimoView(id, tombo, matricula, dataEmprestimo,
                     dataPrevista, dataDevolucaoReal, status);
         }
+
     }
 }

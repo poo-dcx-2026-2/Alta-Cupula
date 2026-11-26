@@ -8,17 +8,22 @@ import java.util.Map;
 
 import br.ufpb.dcx.poo.biblioteca.contrato.ItemView;
 import br.ufpb.dcx.poo.biblioteca.contrato.RelatorioService;
+import br.ufpb.dcx.poo.biblioteca.contrato.UsuarioService;
 import br.ufpb.dcx.poo.biblioteca.contrato.UsuarioView;
 import br.ufpb.dcx.poo.biblioteca.contrato.excecoes.PersistenciaException;
 
-/**
- * Esqueleto dos relatórios. Conteúdo da Entrega 3.
- *
- * <p>Estes métodos são o lugar natural para Streams. E
- * {@link #importarItensEmLote(Path)} é onde o incremento concorrente da Entrega 3
- * tem motivo real para existir.</p>
- */
 public class Relatorios implements RelatorioService, Serializable {
+
+    private final AcervoFilme acervo;
+    private final Emprestimo emprestimos;
+    private final UsuarioService usuarios;
+
+    public Relatorios(AcervoFilme acervo, Emprestimo emprestimos, UsuarioService usuarios) {
+        this.acervo = acervo;
+        this.emprestimos = emprestimos;
+        this.usuarios = usuarios;
+    }
+
 
     @Override
     public List<ItemView> itensMaisEmprestados(int n) {
