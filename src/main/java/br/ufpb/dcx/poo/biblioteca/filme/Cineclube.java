@@ -20,11 +20,12 @@ public class Cineclube implements Biblioteca, Serializable {
     private AcervoFilme acervo = new AcervoFilme();
     private UsuariosEmMemoria usuarios = new UsuariosEmMemoria();
     private Emprestimo emprestimos;
-    private Relatorios relatorios = new Relatorios();
+    private Relatorios relatorios;
 
     public Cineclube() {
             this.emprestimos = new Emprestimo(acervo, usuarios);
             this.usuarios.setEmprestimos(this.emprestimos);
+            this.relatorios = new Relatorios(acervo, emprestimos, usuarios);
 
     }
     public MultaService multas() { return new MultaService(emprestimos); }
